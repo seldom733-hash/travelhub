@@ -1,0 +1,670 @@
+// TravelHub Database Schema
+// PostgreSQL + Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== USERS ====================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  phone         String?   @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  avatar        String?
+  role          UserRole  @default(BUYER)
+  partnerType   PartnerType?
+  companyName   String?
+  language      String    @default("ru")
+  currency      String    @default("AZN")
+  level         UserLevel @default(TRAVELER)
+  bonusPoints   Int       @default(0)
+  isVerified    Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  bio           String?
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  bookings      Booking[]
+  reviews       Review[]
+  services      Service[]     @relation("ServiceProvider")
+  messages      Message[]     @relation("MessageSender")
+  collections   Collection[]
+  notifications Notification[]
+  favorites     Favorite[]
+  conversations ConversationParticipant[]
+  achievements  UserAchievement[]
+  loyaltyTransactions LoyaltyTransaction[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+enum UserRole {
+  BUYER
+  PARTNER
+  MODERATOR
+  ADMIN
+}
+
+enum PartnerType {
+  TOUR_OPERATOR
+  HOTEL
+  SANATORIUM
+  GUIDE
+  PHOTOGRAPHER
+  TRANSPORTER
+  EXCURSION_ORGANIZER
+}
+
+enum UserLevel {
+  TRAVELER
+  EXPLORER
+  PREMIUM
+  ELITE
+}
+
+// ==================== SERVICES ====================
+
+model Service {
+  id            String      @id @default(cuid())
+  title         String
+  slug          String      @unique
+  description   String
+  shortDesc     String?
+  type          ServiceType
+  price         Decimal     
+  currency      String      @default("AZN")
+  discountPrice Decimal?    
+  city          String
+  country       String
+  countryCode   String
+  latitude      Float?
+  longitude     Float?
+  rating        Float       @default(0)
+  reviewCount   Int         @default(0)
+  images        String      @default("")
+  videoUrl      String?
+  duration      String?
+  maxGuests     Int?
+  languages     String      @default("")
+  isActive      Boolean     @default(true)
+  isFeatured    Boolean     @default(false)
+  isHot         Boolean     @default(false)
+  hotDiscount   Int?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  provider      User        @relation("ServiceProvider", fields: [providerId], references: [id])
+  providerId    String
+  bookings      Booking[]
+  reviews       Review[]
+  favorites     Favorite[]
+  amenities     ServiceAmenity[]
+  schedules     ServiceSchedule[]
+  priceVariants ServicePriceVariant[]
+  roomTypes     RoomType[]
+  pricingRules  PricingRule[]
+  tourCategory  TourCategory?
+  flightDetails FlightDetail[]
+  tourHotels    TourHotel[]
+  transferDetails TransferDetail[]
+
+  @@index([type])
+  @@index([type, city, country])
+  @@index([city, country])
+  @@index([price])
+  @@index([rating])
+  @@map("services")
+}
+
+enum ServiceType {
+  TOUR
+  HOTEL
+  SANATORIUM
+  EXCURSION
+  GUIDE
+  PHOTOGRAPHER
+  TRANSFER
+  FLIGHT
+  TRAIN
+}
+
+enum TourCategory {
+  ONE_DAY       // Однодневные: экскурсии на лошадях, горные, экотуры, прогулки
+  MULTI_DAY     // Многодневные: с проживанием, перелётом, трансфером
+}
+
+// Детали перелёта для многодневных туров
+model FlightDetail {
+  id              String   @id @default(cuid())
+  serviceId       String
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  flightNumber    String?                     // Номер рейса: TK-1234
+  airline         String?                     // Авиакомпания: Turkish Airlines
+  departureCity   String                      // Город вылета
+  departureCode   String?                     // IATA код: GYD
+  departureTime   String                      // Время вылета: 08:30
+  arrivalCity     String                      // Город прилёта
+  arrivalCode     String?                     // IATA код: AYT
+  arrivalTime     String                      // Время прилёта: 11:45
+  returnFlight    Boolean  @default(false)     // Обратный рейс?
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@index([serviceId])
+  @@map("flight_details")
+}
+
+// Детали отеля для многодневных туров (какой отель включён)
+model TourHotel {
+  id              String   @id @default(cuid())
+  serviceId       String
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  hotelName       String                      // Название отеля
+  hotelClass      Int?                         // Звёзды: 3, 4, 5
+  roomType        String   @default("Standard") // Тип номера
+  mealPlan        String   @default("BB")     // Питание: RO, BB, HB, FB, AI
+  description     String?                     // Описание проживания
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@index([serviceId])
+  @@map("tour_hotels")
+}
+
+// Детали трансфера для многодневных туров
+model TransferDetail {
+  id              String   @id @default(cuid())
+  serviceId       String
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  included        Boolean  @default(true)     // Включён в стоимость?
+  type            String   @default("standard") // standard, vip, private
+  description     String?                     // Описание трансфера
+  fromPlace       String?                     // Откуда: аэропорт, отель
+  toPlace         String?                     // Куда: аэропорт, отель
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@index([serviceId])
+  @@map("transfer_details")
+}
+
+model ServicePriceVariant {
+  id            String   @id @default(cuid())
+  dateFrom      DateTime                          // Дата начала действия цены
+  dateTo        DateTime                          // Дата окончания действия цены
+  roomType      String?                           // Тип номера: standard, deluxe, suite, family
+  mealPlan      String?                           // Питание: RO, BB, HB, FB, AI
+  childAgeFrom  Int?                              // Возраст детей от
+  childAgeTo    Int?                              // Возраст детей до
+guestsAdults   Int      @default(2)             // Количество взрослых
+  guestsChildren Int     @default(0)             // Количество детей
+  nights        Int?                              // Количество ночей (для туров)
+  pricePerPerson Decimal                          // Цена за человека
+  basePrice     Decimal?                          // Базовая цена (для отелей - за номер/ночь)
+  childPrice    Decimal?                          // Доплата за ребёнка
+  currency      String   @default("AZN")
+  availableSlots Int?                             // Осталось мест/номеров
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  service       Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId     String
+
+  @@index([serviceId])
+  @@index([serviceId, dateFrom, dateTo])
+  @@index([serviceId, roomType, mealPlan])
+  @@map("service_price_variants")
+}
+
+// Типы номеров для отелей/санаториев
+model RoomType {
+  id          String  @id @default(cuid())
+  name        String                           // Название: Standard, Deluxe, Suite, Family
+  slug        String                           // standard, deluxe, suite, family
+  description String?                          // Описание типа номера
+  maxAdults   Int     @default(2)              // Макс. взрослых
+  maxChildren Int     @default(0)              // Макс. детей
+  basePrice   Decimal                          // Базовая цена за ночь
+  currency    String   @default("AZN")
+  images      String   @default("")            // Фото номера (через запятую)
+  amenities   String   @default("")            // Удобства номера (Wi-Fi, балкон, вид)
+  sortOrder   Int      @default(0)             // Порядок отображения
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId   String
+
+  @@index([serviceId])
+  @@unique([serviceId, slug])
+  @@map("room_types")
+}
+
+// Правила ценообразования (наследование цен)
+model PricingRule {
+  id          String  @id @default(cuid())
+  name        String                           // Название правила: "Доплата за HB", "Доплата за ребёнка"
+  type        PricingRuleType                  // Тип модификатора
+  paramKey    String                           // Параметр: roomType, mealPlan, childAge, nights
+  paramValue  String                           // Значение параметра: deluxe, HB, 0-5, 7
+  modifier    PricingModifier @default(ADD)    // Тип модификации: ADD (сложение), MULTIPLY (умножение), FIXED (фиксированная)
+  value       Decimal                          // Значение модификатора (AZN или %)
+  priority    Int      @default(0)             // Приоритет (чем выше, тем раньше применяется)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId   String
+
+  @@index([serviceId])
+  @@index([serviceId, type, paramKey])
+  @@map("pricing_rules")
+}
+
+enum PricingRuleType {
+  ROOM_TYPE         // Доплата за тип номера
+  MEAL_PLAN         // Доплата за питание
+  CHILD             // Доплата за ребёнка
+  NIGHTS            // Модификатор по количеству ночей
+  SEASON            // Сезонный модификатор
+  GUESTS            // Модификатор по количеству гостей
+}
+
+enum PricingModifier {
+  ADD               // + фиксированная сумма (например +15 AZN)
+  SUBTRACT          // - фиксированная сумма (например -10 AZN)
+  MULTIPLY          // * коэффициент (например *1.2 = +20%)
+  FIXED             // Замена на фиксированную цену
+}
+
+model ServiceAmenity {
+  id        String  @id @default(cuid())
+  name      String
+  icon      String?
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId String
+
+  @@map("service_amenities")
+}
+
+model ServiceSchedule {
+  id        String   @id @default(cuid())
+  date      DateTime
+  available Boolean  @default(true)
+  slots     Int?
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId String
+
+  // @@unique([serviceId, date])
+  @@map("service_schedules")
+}
+
+// ==================== BOOKINGS ====================
+
+model Booking {
+  id            String          @id @default(cuid())
+  status        BookingStatus   @default(PENDING)
+  checkIn       DateTime
+  checkOut      DateTime
+  cancellationDeadline DateTime?
+  guests        Int             @default(1)
+  totalPrice    Decimal         
+  serviceFee    Decimal         
+  currency      String          @default("AZN")
+  notes         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Relations
+  user          User            @relation(fields: [userId], references: [id])
+  userId        String
+  service       Service         @relation(fields: [serviceId], references: [id])
+  serviceId     String
+  promoCodeRef  PromoCode?      @relation(fields: [promoCodeRefId], references: [id])
+  promoCodeRefId String?
+  payment       Payment?
+  cancellation  Cancellation?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+// ==================== PAYMENTS ====================
+
+model Payment {
+  id            String          @id @default(cuid())
+  amount        Decimal         
+  currency      String          @default("AZN")
+  method        PaymentMethod
+  status        PaymentStatus   @default(PENDING)
+  transactionId String?
+  paidAt        DateTime?
+  createdAt     DateTime        @default(now())
+
+  // Relations
+  booking       Booking         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId     String          @unique
+
+  @@map("payments")
+}
+
+enum PaymentMethod {
+  CARD
+  APPLE_PAY
+  GOOGLE_PAY
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+// ==================== CANCELLATIONS ====================
+
+model Cancellation {
+  id            String          @id @default(cuid())
+  reason        String
+  refundAmount  Decimal         
+  status        CancellationStatus @default(PENDING)
+  processedAt   DateTime?
+  createdAt     DateTime        @default(now())
+
+  // Relations
+  booking       Booking         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId     String          @unique
+
+  @@map("cancellations")
+}
+
+enum CancellationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PROCESSED
+}
+
+// ==================== REVIEWS ====================
+
+model Review {
+  id            String    @id @default(cuid())
+  rating        Int
+  title         String?
+  text          String
+  photos        String      @default("")
+  isVerified    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  user          User      @relation(fields: [userId], references: [id])
+  userId        String
+  service       Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId     String
+  reply         ReviewReply?
+
+  @@unique([userId, serviceId])
+  @@index([rating])
+  @@index([createdAt])
+  @@map("reviews")
+}
+
+model ReviewReply {
+  id        String    @id @default(cuid())
+  text      String
+  createdAt DateTime  @default(now())
+
+  // Relations
+  review    Review    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  reviewId  String    @unique
+
+  @@map("review_replies")
+}
+
+// ==================== MESSAGES (CHAT) ====================
+
+model Conversation {
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  messages      Message[]
+  participants  ConversationParticipant[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id              String       @id @default(cuid())
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId  String
+  user            User         @relation(fields: [userId], references: [id])
+  userId          String
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id              String       @id @default(cuid())
+  text            String
+  type            MessageType  @default(TEXT)
+  fileUrl         String?
+  isRead          Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+
+  // Relations
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId  String
+  sender          User         @relation("MessageSender", fields: [senderId], references: [id])
+  senderId        String
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  LOCATION
+  VOICE
+}
+
+// ==================== FAVORITES & COLLECTIONS ====================
+
+model Collection {
+  id          String      @id @default(cuid())
+  name        String
+  icon        String?
+  isPublic    Boolean     @default(false)
+  shareToken  String?     @unique
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String
+  favorites   Favorite[]
+
+  @@index([userId])
+  @@map("collections")
+}
+
+model Favorite {
+  id            String      @id @default(cuid())
+  createdAt     DateTime    @default(now())
+
+  // Relations
+  user          User        @relation(fields: [userId], references: [id])
+  userId        String
+  service       Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId     String
+  collection    Collection? @relation(fields: [collectionId], references: [id])
+  collectionId  String?
+
+  @@unique([userId, serviceId])
+  @@map("favorites")
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model Notification {
+  id          String           @id @default(cuid())
+  type        NotificationType
+  title       String
+  description String
+  link        String?
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  // Relations
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  BOOKING
+  MESSAGE
+  PROMO
+  REVIEW
+  SYSTEM
+}
+
+// ==================== ACHIEVEMENTS ====================
+
+model Achievement {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  icon        String
+  category    String
+  requirement Int
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  users       UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String    @id @default(cuid())
+  unlockedAt    DateTime  @default(now())
+
+  // Relations
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  achievementId String
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+// ==================== PROMO CODES ====================
+
+model PromoCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  discount    Int
+  type        PromoType @default(PERCENT)
+  maxUses     Int?
+  usedCount   Int       @default(0)
+  minAmount   Decimal?  
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  bookings    Booking[]
+
+  @@index([code])
+  @@map("promo_codes")
+}
+
+enum PromoType {
+  PERCENT
+  FIXED
+}
+
+// ==================== LOYALTY TRANSACTIONS ====================
+
+model LoyaltyTransaction {
+  id          String           @id @default(cuid())
+  points      Int
+  type        LoyaltyType
+  description String
+  createdAt   DateTime         @default(now())
+
+  // Relations
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+
+  @@index([userId, createdAt])
+  @@map("loyalty_transactions")
+}
+
+enum LoyaltyType {
+  EARNED
+  SPENT
+  EXPIRED
+  BONUS
+}
+
+// ==================== BLOG ====================
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  excerpt     String
+  content     String
+  coverImage  String
+  category    String
+  tags        String      @default("")
+  authorName  String
+  authorAvatar String?
+  readTime    Int
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([category])
+  @@index([publishedAt])
+  @@map("blog_posts")
+}

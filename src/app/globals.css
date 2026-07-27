@@ -3,13 +3,31 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #f97316;
+  --primary-dark: #ea580c;
+  --secondary: #0f172a;
+  --accent: #06b6d4;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --star: #facc15;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-star: var(--star);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --animate-fadeInUp: fadeInUp 0.6s ease-out both;
+  --animate-pulse-gentle: pulse-gentle 3s ease-in-out infinite;
+  --animate-badge-pulse: badge-pulse 2s ease-in-out infinite;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +40,127 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Ensure typed text is always readable on white/light backgrounds */
+input,
+textarea,
+select {
+  color: #0f172a !important;
+  caret-color: #0f172a !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #64748b !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  color: #020617 !important;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-gentle {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes badge-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
+}
+
+/* Mega menu */
+.mega-menu-trigger .mega-menu {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: all 0.2s ease;
+}
+
+.mega-menu-trigger:hover .mega-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Image background with Ken Burns */
+.img-bg {
+  animation: kenBurns 20s ease-in-out infinite alternate;
+}
+
+@keyframes kenBurns {
+  from { transform: scale(1); }
+  to { transform: scale(1.05); }
+}
+
+/* Badge pulse */
+.badge-pulse {
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+/* Toast slide-in animation */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
