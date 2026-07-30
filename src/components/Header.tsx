@@ -267,8 +267,11 @@ export default function Header() {
                         <p className="font-semibold text-secondary text-sm">{user.firstName} {user.lastName}</p>
                         <p className="text-xs text-gray-400">{user.email}</p>
                       </div>
+                      {user.role === "ADMIN" && (
+                        <a href="/admin" className="block px-4 py-2 text-sm text-primary font-semibold hover:bg-primary/5 transition-colors">🛡 Admin Panel</a>
+                      )}
                       <a href="/dashboard" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">{t("header.dashboard")}</a>
-                      <a href="/bookings" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">{t("header.myBookings")}</a>
+
                       <a href="/favorites" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">{t("header.favorites")}</a>
                       <a href="/settings" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">{t("header.settings")}</a>
                       <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-danger hover:bg-red-50 transition-colors border-t border-gray-100 mt-1">{t("header.logout")}</button>

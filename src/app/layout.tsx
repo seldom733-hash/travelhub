@@ -6,6 +6,7 @@ import { CartProvider } from "@/lib/cart-context";
 import { I18nProvider } from "@/lib/i18n-context";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ViewTracker from "@/components/ViewTracker";
 import { ToastProvider } from "@/components/Toast";
 
 const geistSans = Geist({
@@ -76,6 +77,7 @@ export default function RootLayout({
               <ToastProvider>
                 <Header />
                 <main className="flex-1">{children}</main>
+                <ViewTracker />
                 <Footer />
               </ToastProvider>
             </CartProvider>

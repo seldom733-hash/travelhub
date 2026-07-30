@@ -1,0 +1,128 @@
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { verifyToken } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const payload = await verifyToken(token);
+    if (!payload || payload.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const search = searchParams.get("search") || "";
+    const skip = (page - 1) * limit;
+
+    const where: any = { role: "PARTNER" };
+    if (search) {
+      where.OR = [
+        { firstName: { contains: search, mode: "insensitive" } },
+        { lastName: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+        { companyName: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    let partners: any[] = [];
+    let total = 0;
+    try {
+      const [p, t] = await Promise.all([
+        prisma.user.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            companyName: true,
+            partnerType: true,
+            isActive: true,
+            isVerified: true,
+            createdAt: true,
+            lastLoginAt: true,
+            _count: {
+              select: { services: true, bookings: true, reviews: true },
+            },
+          },
+        }),
+        prisma.user.count({ where }),
+      ]);
+      partners = p;
+      total = t;
+    } catch (e) {
+      console.error("Partners query error:", e);
+    }
+
+    // Get revenue per partner — wrapped in try/catch
+    const partnerIds = partners.map((p) => p.id);
+    let revenuePerPartner: { provider_id: string; revenue: bigint; booking_count: bigint }[] = [];
+    try {
+      if (partnerIds.length > 0) {
+        revenuePerPartner = await prisma.$queryRawUnsafe<
+          { provider_id: string; revenue: bigint; booking_count: bigint }[]
+        >(
+          `SELECT s.provider_id, SUM(b.total_price) as revenue, COUNT(*) as booking_count
+           FROM bookings b
+           JOIN services s ON b.service_id = s.id
+           WHERE s.provider_id = ANY($1) AND b.status = 'COMPLETED'
+           GROUP BY s.provider_id`,
+          partnerIds
+        );
+      }
+    } catch (e) {
+      console.error("Revenue per partner error:", e);
+    }
+
+    const revenueMap = new Map(
+      revenuePerPartner.map((r) => [
+        r.provider_id,
+        { revenue: Number(r.revenue || 0), bookingCount: Number(r.booking_count) },
+      ])
+    );
+
+    const enrichedPartners = partners.map((p) => ({
+      id: p.id,
+      firstName: p.firstName,
+      lastName: p.lastName,
+      email: p.email,
+      companyName: p.companyName,
+      partnerType: p.partnerType,
+      isActive: p.isActive,
+      isVerified: p.isVerified,
+      createdAt: p.createdAt,
+      lastLoginAt: p.lastLoginAt,
+      serviceCount: p._count.services,
+      bookingCount: revenueMap.get(p.id)?.bookingCount || 0,
+      reviewCount: p._count.reviews,
+      totalRevenue: revenueMap.get(p.id)?.revenue || 0,
+    }));
+
+    return NextResponse.json({
+      partners: enrichedPartners,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Admin partners error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

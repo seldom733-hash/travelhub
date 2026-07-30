@@ -657,6 +657,89 @@ enum LoyaltyType {
   BONUS
 }
 
+// ==================== ANALYTICS (PAGE VIEWS) ====================
+
+model PageView {
+  id          String   @id @default(cuid())
+  path        String                           // URL страницы: /hotels, /tours/abc123
+  serviceId   String?                          // ID услуги если просмотр страницы услуги
+  serviceType String?                          // TOUR, HOTEL, EXCURSION и т.д.
+  userId      String?                          // ID зарегистрированного пользователя
+  sessionId   String?                          // Session ID для анонимных
+  ipAddress   String?                          // IP адрес
+  userAgent   String?                          // Браузер/устройство
+  referrer    String?                          // Откуда пришёл
+  country     String?                          // Страна по IP
+  city        String?                          // Город по IP
+  device      String?                          // desktop, mobile, tablet
+  isPartner   Boolean  @default(false)         // Просмотр из кабинета партнёра
+  duration    Int?                             // Время на странице (сек)
+  createdAt   DateTime @default(now())
+
+  @@index([serviceId])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([serviceType])
+  @@index([path])
+  @@map("page_views")
+}
+
+// ==================== SEARCH ANALYTICS ====================
+
+model SearchQuery {
+  id          String   @id @default(cuid())
+  query       String                           // Текст запроса
+  userId      String?                          // ID пользователя
+  sessionId   String?                          // Session ID
+  serviceType String?                          // TOUR, HOTEL и т.д. (если выбран фильтр типа)
+  resultCount Int      @default(0)             // Количество результатов
+  filters     String?                          // JSON с применёнными фильтрами
+  country     String?                          // Страна из запроса
+  city        String?                          // Город из запроса
+  isAiSearch  Boolean  @default(false)         // AI-поиск?
+  createdAt   DateTime @default(now())
+
+  @@index([query])
+  @@index([createdAt])
+  @@index([userId])
+  @@map("search_queries")
+}
+
+// ==================== FUNNEL EVENTS ====================
+
+model FunnelEvent {
+  id          String   @id @default(cuid())
+  event       String                           // search, view_card, select_variant, checkout, payment, booking
+  userId      String?                          // ID пользователя
+  sessionId   String?                          // Session ID
+  serviceId   String?                          // ID услуги
+  serviceType String?                          // TOUR, HOTEL и т.д.
+  metadata    String?                          // JSON с дополнительными данными
+  createdAt   DateTime @default(now())
+
+  @@index([event])
+  @@index([createdAt])
+  @@index([userId])
+  @@index([sessionId])
+  @@map("funnel_events")
+}
+
+// ==================== USER ACTIVITY ====================
+
+model UserActivity {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String                           // login, search, view, book, cancel, review
+  metadata    String?                          // JSON с дополнительными данными
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("user_activity")
+}
+
 // ==================== BLOG ====================
 
 model BlogPost {
