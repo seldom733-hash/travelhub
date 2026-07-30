@@ -4,7 +4,7 @@ import { jwtVerify } from "jose";
 const rawSecret = process.env.JWT_SECRET;
 if (!rawSecret) {
   throw new Error(
-    "[Middleware] JWT_SECRET env variable is required. " +
+    "[Proxy] JWT_SECRET env variable is required. " +
     "Set it in .env — see .env.example for details."
   );
 }
@@ -13,7 +13,7 @@ const JWT_SECRET = new TextEncoder().encode(rawSecret);
 const protectedRoutes = ["/dashboard", "/partner", "/admin", "/chat", "/favorites", "/notifications", "/loyalty", "/bookings"];
 const authRoutes = ["/auth/login", "/auth/register"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("token")?.value;
 
