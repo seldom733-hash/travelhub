@@ -39,6 +39,15 @@ nul
 # vercel
 .vercel
 
+# local database & preview logs
+.freebuff/
+
+# prisma migrations (generated)
+prisma/migrations/
+
+# misc temp files
+0
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
