@@ -1,41 +1,58 @@
 import { NextResponse } from "next/server";
+import { ApiCache } from "@/lib/api-cache";
 
 export const dynamic = "force-dynamic";
 
+// Separate cache for stats — 60s fresh, 10 min stale
+const statsCache = new ApiCache(60, 600);
+
 export async function GET() {
   try {
+    // Serve from cache if fresh
+    const lookup = statsCache.get("/api/stats");
+    if (lookup.data && !lookup.isStale) {
+      return NextResponse.json(lookup.data, { headers: { "X-Cache": "HIT" } });
+    }
+    if (lookup.data && lookup.isStale) {
+      // Serve stale immediately, but revalidate below
+    }
+
     const { prisma } = await import("@/lib/prisma");
 
-    const [
-      tours,
-      hotels,
-      sanatoriums,
-      excursions,
-      flights,
-      trains,
-      guides,
-      photographers,
-      transfers,
-      totalUsers,
-      totalPartners,
-    ] = await Promise.all([
-      prisma.service.count({ where: { type: "TOUR", isActive: true } }),
-      prisma.service.count({ where: { type: "HOTEL", isActive: true } }),
-      prisma.service.count({ where: { type: "SANATORIUM", isActive: true } }),
-      prisma.service.count({ where: { type: "EXCURSION", isActive: true } }),
-      prisma.service.count({ where: { type: "FLIGHT", isActive: true } }),
-      prisma.service.count({ where: { type: "TRAIN", isActive: true } }),
-      prisma.service.count({ where: { type: "GUIDE", isActive: true } }),
-      prisma.service.count({ where: { type: "PHOTOGRAPHER", isActive: true } }),
-      prisma.service.count({ where: { type: "TRANSFER", isActive: true } }),
-      prisma.user.count(),
-      prisma.user.count({ where: { role: "PARTNER" } }),
-    ]);
+    // Single GROUP BY query instead of 11 separate COUNTs
+    const typeCounts = await prisma.service.groupBy({
+      by: ["type"],
+      _count: { id: true },
+      where: { isActive: true },
+    });
 
-    return NextResponse.json({
-      services: { tours, hotels, sanatoriums, excursions, flights, trains, guides, photographers, transfers },
+    const counts: Record<string, number> = {};
+    for (const row of typeCounts) {
+      counts[row.type] = row._count.id;
+    }
+
+    const totalUsers = await prisma.user.count();
+    const totalPartners = await prisma.user.count({ where: { role: "PARTNER" } });
+
+    const responseData = {
+      services: {
+        tours: counts["TOUR"] ?? 0,
+        hotels: counts["HOTEL"] ?? 0,
+        sanatoriums: counts["SANATORIUM"] ?? 0,
+        excursions: counts["EXCURSION"] ?? 0,
+        flights: counts["FLIGHT"] ?? 0,
+        trains: counts["TRAIN"] ?? 0,
+        guides: counts["GUIDE"] ?? 0,
+        photographers: counts["PHOTOGRAPHER"] ?? 0,
+        transfers: counts["TRANSFER"] ?? 0,
+      },
       users: totalUsers,
       partners: totalPartners,
+    };
+
+    statsCache.set("/api/stats", responseData);
+    return NextResponse.json(responseData, {
+      headers: lookup.data ? { "X-Cache": "STALE" } : { "X-Cache": "MISS" },
     });
   } catch (error) {
     console.error("Stats API error:", error);

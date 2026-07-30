@@ -61,16 +61,24 @@ export async function GET(request: NextRequest) {
       default:           orderBy = { rating: "desc" }; break;
     }
 
-    // ── Fetch with buffer for remaining post-filters (duration, distanceToSea), then slice ──
-    // nights filtering moved to Prisma level, reducing need for oversized fetch
+    // Fetch with buffer for remaining post-filters (duration, distanceToSea), then slice
     const skip = (page - 1) * limit;
     const fetchLimit = Math.max(limit * 2, 30);
     const [services, total] = await Promise.all([
       prisma.service.findMany({
         where,
-        include: {
+        select: {
+          id: true, title: true, slug: true, description: true, shortDesc: true,
+          type: true, price: true, currency: true, discountPrice: true,
+          city: true, country: true, countryCode: true,
+          latitude: true, longitude: true,
+          rating: true, reviewCount: true,
+          images: true, languages: true, duration: true,
+          isFeatured: true, isHot: true, hotDiscount: true, freeCancellation: true,
+          amenities: { select: { id: true, name: true, icon: true } },
           provider: { select: { id: true, firstName: true, lastName: true, companyName: true } },
-          amenities: true,
+          tourCategory: true,
+          isActive: true, createdAt: true,
         },
         orderBy,
         skip,
