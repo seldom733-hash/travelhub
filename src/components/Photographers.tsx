@@ -73,8 +73,7 @@ export default function Photographers() {
             photographers.map((p) => (
               <a key={p.id} href={`/photographers/${p.id}`} className="group card-hover bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-pink-300">
                 <div className="relative h-48 overflow-hidden">
-                  <img src={p.images?.[0] || "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80"} alt="Portfolio" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  <img src={p.images?.[0] || "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80"} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   {p.images?.[1] && <div className="absolute top-3 right-3"><img src={p.images[1]} alt={p.title} className="w-12 h-12 rounded-full border-2 border-white object-cover" /></div>}
                 </div>
                 <div className="p-5">

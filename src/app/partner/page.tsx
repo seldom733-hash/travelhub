@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n-context";
+import { useRouter } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
+import PartnerServiceList from "@/components/PartnerServiceList";
 
 const sidebarItems = [
   { icon: "📊", label: "Панель управления", id: "dashboard" },
@@ -41,6 +43,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 
 export default function PartnerDashboardPage() {
   const { t } = useI18n();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("dashboard");
 
   return (
@@ -56,7 +59,10 @@ export default function PartnerDashboardPage() {
               <h1 className="text-2xl font-bold text-secondary">Кабинет партнера</h1>
               <p className="text-gray-500">TravelPro Azerbaijan</p>
             </div>
-            <button className="h-10 px-6 bg-primary hover:bg-primary-dark text-white rounded-xl font-semibold transition-all hover:shadow-lg">
+            <button
+              onClick={() => router.push("/partner/services/new")}
+              className="h-10 px-6 bg-primary hover:bg-primary-dark text-white rounded-xl font-semibold transition-all hover:shadow-lg"
+            >
               + Добавить услугу
             </button>
           </div>
@@ -108,61 +114,81 @@ export default function PartnerDashboardPage() {
               ))}
             </div>
 
-            {/* Chart Placeholder */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-secondary">Аналитика дохода</h2>
-                <select className="text-sm font-medium text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none">
-                  <option>Последние 30 дней</option>
-                  <option>Последние 3 месяца</option>
-                  <option>Последний год</option>
-                </select>
+            {/* Chart Placeholder (only on dashboard) */}
+            {activeTab === "dashboard" && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-bold text-secondary">Аналитика дохода</h2>
+                  <select className="text-sm font-medium text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none">
+                    <option>Последние 30 дней</option>
+                    <option>Последние 3 месяца</option>
+                    <option>Последний год</option>
+                  </select>
+                </div>
+                <div className="h-48 bg-gradient-to-r from-primary/5 to-accent/5 rounded-xl flex items-center justify-center text-gray-400">
+                  📈 График дохода (интеграция с Chart.js)
+                </div>
               </div>
-              <div className="h-48 bg-gradient-to-r from-primary/5 to-accent/5 rounded-xl flex items-center justify-center text-gray-400">
-                📈 График дохода (интеграция с Chart.js)
-              </div>
-            </div>
+            )}
 
-            {/* Recent Orders */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-secondary">Последние заказы</h2>
-                <a href="/partner/orders" className="text-sm text-primary font-medium hover:text-primary-dark">
-                  Все заказы →
-                </a>
+            {/* Services Tab */}
+            {activeTab === "services" && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-bold text-secondary">📦 Мои услуги</h2>
+                  <button
+                    onClick={() => router.push("/partner/services/new")}
+                    className="h-9 px-4 bg-primary hover:bg-primary-dark text-white rounded-lg text-sm font-medium transition-all"
+                  >
+                    + Добавить
+                  </button>
+                </div>
+                <PartnerServiceList />
               </div>
+            )}
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">ID</th>
-                      <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Клиент</th>
-                      <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Услуга</th>
-                      <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Дата</th>
-                      <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Статус</th>
-                      <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Сумма</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {recentOrders.map((order) => (
-                      <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="py-3 text-sm font-medium text-secondary">{order.id}</td>
-                        <td className="py-3 text-sm text-gray-600">{order.customer}</td>
-                        <td className="py-3 text-sm text-gray-600">{order.service}</td>
-                        <td className="py-3 text-sm text-gray-500">{order.date}</td>
-                        <td className="py-3">
-                          <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusLabels[order.status].color}`}>
-                            {statusLabels[order.status].label}
-                          </span>
-                        </td>
-                        <td className="py-3 text-sm font-semibold text-secondary text-right">{order.amount} AZN</td>
+            {/* Recent Orders (only on dashboard) */}
+            {activeTab === "dashboard" && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-bold text-secondary">Последние заказы</h2>
+                  <a href="/partner/orders" className="text-sm text-primary font-medium hover:text-primary-dark">
+                    Все заказы →
+                  </a>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-100">
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">ID</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Клиент</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Услуга</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Дата</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Статус</th>
+                        <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Сумма</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {recentOrders.map((order) => (
+                        <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="py-3 text-sm font-medium text-secondary">{order.id}</td>
+                          <td className="py-3 text-sm text-gray-600">{order.customer}</td>
+                          <td className="py-3 text-sm text-gray-600">{order.service}</td>
+                          <td className="py-3 text-sm text-gray-500">{order.date}</td>
+                          <td className="py-3">
+                            <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusLabels[order.status].color}`}>
+                              {statusLabels[order.status].label}
+                            </span>
+                          </td>
+                          <td className="py-3 text-sm font-semibold text-secondary text-right">{order.amount} AZN</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

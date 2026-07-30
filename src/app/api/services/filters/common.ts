@@ -59,7 +59,6 @@ export function applyCommonFilters(
   // ── Amenity-based filters ──
   const amenityValues = searchParams.getAll("amenities");
   const mealValues = searchParams.getAll("meal");
-  const spaFilter = searchParams.getAll("spa");
   const waterparkFilter = searchParams.getAll("waterpark");
   const kidsFilter = searchParams.getAll("kids");
   const firstLine = searchParams.getAll("firstLine");
@@ -69,10 +68,6 @@ export function applyCommonFilters(
 
   for (const val of amenityValues) {
     const names = AMENITY_MAP[val];
-    if (names) amenityNamesToFilter.push(...names);
-  }
-  for (const val of spaFilter) {
-    const names = AMENITY_MAP[val] || AMENITY_MAP["spa"];
     if (names) amenityNamesToFilter.push(...names);
   }
   for (const val of waterparkFilter) {
@@ -146,7 +141,20 @@ export function applyCommonFilters(
   const cancellation = searchParams.getAll("cancellation");
   if (cancellation.length > 0) {
     andConditions.push({
-      description: { contains: "Бесплатная отмена" },
+      freeCancellation: true,
+    });
+  }
+
+  // ── Start date filter (availability) ──
+  const startDate = searchParams.get("startDate");
+  if (startDate) {
+    andConditions.push({
+      schedules: {
+        some: {
+          date: { gte: new Date(startDate) },
+          available: true,
+        },
+      },
     });
   }
 }

@@ -24,16 +24,14 @@ interface ServicesResponse {
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center animate-pulse">
-      <div className="w-20 h-20 mx-auto mb-4 bg-gray-200 rounded-full" />
-      <div className="h-4 bg-gray-200 rounded w-24 mx-auto mb-2" />
-      <div className="h-3 bg-gray-200 rounded w-32 mx-auto mb-2" />
-      <div className="flex justify-center gap-1 mb-3">
-        <div className="h-5 bg-gray-200 rounded w-10" />
-        <div className="h-5 bg-gray-200 rounded w-10" />
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
+      <div className="h-48 bg-gray-200" />
+      <div className="p-4 space-y-2">
+        <div className="h-4 bg-gray-200 rounded w-3/4" />
+        <div className="h-3 bg-gray-200 rounded w-1/2" />
+        <div className="h-3 bg-gray-200 rounded w-1/3" />
+        <div className="pt-3 border-t border-gray-50 flex justify-between"><div className="h-5 bg-gray-200 rounded w-16" /><div className="h-3 bg-gray-200 rounded w-20" /></div>
       </div>
-      <div className="h-5 bg-gray-200 rounded w-16 mx-auto mb-3" />
-      <div className="h-10 bg-gray-200 rounded-xl" />
     </div>
   );
 }
@@ -91,25 +89,30 @@ export default function Guides() {
             </div>
           ) : (
             guides.map((guide) => (
-              <a key={guide.id} href={`/guides/${guide.id}`} className="group card-hover bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-primary/30 p-5 text-center">
-                <div className="relative w-20 h-20 mx-auto mb-4">
-                  <img src={guide.image} alt={guide.title} className="w-full h-full rounded-full object-cover border-4 border-primary/20 group-hover:border-primary transition-colors" />
-                  <div className="absolute bottom-0 right-0 w-6 h-6 bg-success rounded-full border-2 border-white flex items-center justify-center"><span className="text-white text-[10px]">✓</span></div>
+              <a key={guide.id} href={`/guides/${guide.id}`} className="group card-hover bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-primary/30">
+                <div className="relative h-48 overflow-hidden">
+                  <img src={guide.image} alt={guide.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <div className="absolute top-3 right-3 bg-success text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">✓ {t("guides.hasLicense")}</div>
                 </div>
-                <h3 className="font-bold text-secondary text-lg group-hover:text-primary transition-colors">{guide.title}</h3>
-                <p className="text-sm text-gray-500 mb-2">📍 {guide.city}, {guide.country}</p>
-                {guide.provider && (
-                  <p className="text-xs text-gray-400 mb-2">🏢 {getProviderName(guide.provider)}</p>
-                )}
-                <div className="flex justify-center gap-1 mb-3">
-                  {guide.languages.map((lang) => (<span key={lang} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full font-medium">{lang.trim()}</span>))}
+                <div className="p-4">
+                  <h3 className="font-semibold text-secondary mb-1 group-hover:text-primary transition-colors line-clamp-1">{guide.title}</h3>
+                  <p className="text-sm text-gray-500 mb-2">📍 {guide.city}, {guide.country}</p>
+                  {guide.provider && (
+                    <p className="text-xs text-gray-400 mb-2">🏢 {getProviderName(guide.provider)}</p>
+                  )}
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {guide.languages.map((lang) => (<span key={lang} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full font-medium">{lang.trim()}</span>))}
+                  </div>
+                  <div className="flex items-center gap-1 mb-3">
+                    {[...Array(5)].map((_, i) => (<span key={i} className="text-star text-xs">★</span>))}
+                    <span className="text-xs font-semibold text-secondary">{guide.rating}</span>
+                    <span className="text-xs text-gray-400">({guide.reviewCount})</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                    <span className="text-xl font-bold text-primary">{guide.price} AZN</span>
+                    <span className="text-xs text-primary font-medium group-hover:translate-x-1 transition-transform">{t("guides.message")} →</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-center gap-1 mb-3">
-                  {[...Array(5)].map((_, i) => (<span key={i} className="text-star text-xs">★</span>))}
-                  <span className="text-xs font-semibold text-secondary">{guide.rating}</span>
-                </div>
-                <p className="text-sm text-gray-500 mb-4">{guide.reviewCount} {t("guides.excursions")}</p>
-                <button className="w-full h-10 bg-primary/10 hover:bg-primary hover:text-white text-primary rounded-xl font-semibold text-sm transition-all">{t("guides.message")}</button>
               </a>
             ))
           )}

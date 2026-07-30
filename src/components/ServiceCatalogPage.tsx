@@ -12,8 +12,10 @@ import { getProviderName } from "@/lib/types";
 import { flagMap } from "@/lib/flags";
 import Pagination from "@/components/Pagination";
 import Breadcrumb from "@/components/Breadcrumb";
+import MobileDrawer from "@/components/MobileDrawer";
+import ServiceMap from "@/components/ServiceMap";
 
-type ViewMode = "cards" | "list";
+type ViewMode = "cards" | "list" | "map";
 
 export interface ServiceCatalogConfig {
   serviceType: string;
@@ -80,6 +82,11 @@ export default function ServiceCatalogPage({
   const [sortBy, setSortBy] = useState("popular");
   const [filterState, setFilterState] = useState<FilterState>(initialFilterState || {});
   const [fetchTrigger, setFetchTrigger] = useState(0);
+  const [facets, setFacets] = useState<Record<string, string[]> | null>(null);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [rawServices, setRawServices] = useState<Record<string, unknown>[]>([]);
+
+
 
   const PAGE_LIMIT = 9;
   const skeletonCount = config.skeletonCount || PAGE_LIMIT;
@@ -122,8 +129,10 @@ export default function ServiceCatalogPage({
           : data.services.map((s: Record<string, unknown>) => defaultMapService(s, config, t));
 
         setItems(mapped);
+        setRawServices(data.services || []);
         setTotalPages(data.pagination?.pages || 1);
         setTotalCount(data.pagination?.total || mapped.length);
+        if (data.facets) setFacets(data.facets);
         onDataLoadedRef.current?.(data);
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
@@ -197,9 +206,18 @@ export default function ServiceCatalogPage({
       <div className="max-w-7xl mx-auto px-4 py-8">
         {aboveGrid}
 
+        {/* Mobile filter button */}
+        <div className="lg:hidden mb-4">
+          <button onClick={() => setMobileFilterOpen(true)} className="flex items-center gap-2 h-11 px-5 bg-white border border-gray-200 rounded-xl font-medium text-secondary hover:border-primary hover:text-primary transition-all shadow-sm">
+            <span className="text-lg">🔍</span>
+            {t("filter.title")}
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-1">
-            <FilterSidebar category={config.filterCategory as any} onFilterChange={setFilterState} onSortChange={setSortBy} />
+          {/* Desktop sidebar */}
+          <div className="hidden lg:block lg:col-span-1">
+            <FilterSidebar category={config.filterCategory as any} onFilterChange={setFilterState} onSortChange={setSortBy} availableFilters={facets ? Object.keys(facets).filter(k => (facets[k]?.length || 0) > 0) : undefined} />
           </div>
 
           <div className="lg:col-span-3">
@@ -215,6 +233,7 @@ export default function ServiceCatalogPage({
                   <div className="flex items-center gap-2">
                     <button onClick={() => setViewMode("cards")} className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all ${viewMode === "cards" ? "bg-primary text-white" : "bg-white border border-gray-200 text-gray-400 hover:border-primary hover:text-primary"}`}>🃏</button>
                     <button onClick={() => setViewMode("list")} className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all ${viewMode === "list" ? "bg-primary text-white" : "bg-white border border-gray-200 text-gray-400 hover:border-primary hover:text-primary"}`}>☰</button>
+                    <button onClick={() => setViewMode("map")} className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all ${viewMode === "map" ? "bg-primary text-white" : "bg-white border border-gray-200 text-gray-400 hover:border-primary hover:text-primary"}`}>🗺</button>
                   </div>
                 )}
               </div>
@@ -261,11 +280,29 @@ export default function ServiceCatalogPage({
               )
             ) : (
               <>
+                {viewMode === "map" ? (
+                  <ServiceMap
+                    services={rawServices.map((s) => ({
+                      id: String(s.id),
+                      title: String(s.title),
+                      lat: (s.latitude as number) || 0,
+                      lng: (s.longitude as number) || 0,
+                      price: Number(s.discountPrice || s.price),
+                      rating: Number(s.rating) || 0,
+                      image: (s.images as string[])?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&q=60",
+                      city: String(s.city || ""),
+                      country: String(s.country || ""),
+                      type: String(s.type || ""),
+                    }))}
+                    height="600px"
+                  />
+                ) : (
                 <div className={gridClassName || (viewMode === "cards" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6" : "space-y-4")}>
                   {items.map((item) => (
                     <ServiceCard key={String(item.id)} service={item} />
                   ))}
                 </div>
+                )}
 
                 <Pagination
                   page={page}
@@ -280,6 +317,22 @@ export default function ServiceCatalogPage({
           </div>
         </div>
       </div>
+      {/* Mobile filter drawer */}
+      <MobileDrawer
+        open={mobileFilterOpen}
+        onClose={() => setMobileFilterOpen(false)}
+        title={t("filter.title")}
+        peekHint={t('filter.swipeToOpen')}
+      >
+        <FilterSidebar
+          category={config.filterCategory as any}
+          onFilterChange={(f) => { setFilterState(f); setMobileFilterOpen(false); }}
+          onSortChange={setSortBy}
+          filterState={filterState}
+          noSticky
+          availableFilters={facets ? Object.keys(facets).filter(k => (facets[k]?.length || 0) > 0) : undefined}
+        />
+      </MobileDrawer>
     </div>
   );
 }
@@ -305,5 +358,6 @@ function defaultMapService(
     tags: s.isHot ? ["🔥"] : undefined,
     amenities: (s.amenities as { name: string }[])?.map((a) => a.name).slice(0, 3),
     providerName: getProviderName(s.provider as ProviderInfo),
+    duration: s.duration as string | null,
   };
 }

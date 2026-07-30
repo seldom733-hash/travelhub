@@ -146,6 +146,60 @@ select:focus {
   animation: slide-in-right 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) both;
 }
 
+/* Slide-up animation for mobile drawer */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Spring-back animation for drawer drag-to-dismiss */
+@keyframes spring-back {
+  0%   { transform: translateY(var(--drag-y)); }
+  40%  { transform: translateY(-6px); }
+  70%  { transform: translateY(3px); }
+  85%  { transform: translateY(-1px); }
+  100% { transform: translateY(0); }
+}
+
+.drawer-spring-back {
+  animation: spring-back 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Slide-down animation for mobile drawer close */
+@keyframes slide-down {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* Peek state for mobile drawer — only shows handle + header */
+.drawer-peek {
+  max-height: 140px !important;
+  transition: max-height 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.drawer-full {
+  max-height: 85vh;
+  transition: max-height 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;

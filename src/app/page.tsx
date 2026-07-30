@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import Categories from "@/components/Categories";
 import Search from "@/components/Search";
 import PopularDestinations from "@/components/PopularDestinations";
+import Tours from "@/components/Tours";
 import HotTours from "@/components/HotTours";
 import Excursions from "@/components/Excursions";
 import Hotels from "@/components/Hotels";
@@ -45,6 +46,8 @@ export default function Home() {
       <Search />
       <Categories />
       <PopularDestinations />
+
+      <Tours />
 
       {/* These 7 sections each fetch data independently.
           Wrapping each in Suspense allows them to load in parallel

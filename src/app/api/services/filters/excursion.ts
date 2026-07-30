@@ -3,6 +3,7 @@ import {
   EXCURSION_CATEGORY_KEYWORDS,
   EXCURSION_TRANSPORT_KEYWORDS,
   EXCURSION_TYPE_KEYWORDS,
+  EXCURSION_DURATION_KEYWORDS,
 } from "./keywords";
 import { buildKeywordOrConditions, resolveKeywords } from "./helpers";
 
@@ -34,6 +35,15 @@ export function applyExcursionFilters(ctx: FilterContext): void {
     const excKeywordArrays = resolveKeywords(excursionTypes, EXCURSION_TYPE_KEYWORDS);
     if (excKeywordArrays.length > 0) {
       andConditions.push({ OR: buildKeywordOrConditions(excKeywordArrays) });
+    }
+  }
+
+  // ── Duration filter (uses shared keyword map from keywords.ts) ──
+  const durations = searchParams.getAll("duration");
+  if (durations.length > 0 && type === "EXCURSION") {
+    const durationKeywordArrays = resolveKeywords(durations, EXCURSION_DURATION_KEYWORDS);
+    if (durationKeywordArrays.length > 0) {
+      andConditions.push({ OR: buildKeywordOrConditions(durationKeywordArrays, ["duration"]) });
     }
   }
 

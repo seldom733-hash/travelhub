@@ -88,8 +88,30 @@ describe("Edge cases — hotel filters", () => {
     applyHotelFilters(ctx);
     expect(ctx.andConditions).toHaveLength(1);
     const cond = ctx.andConditions[0] as any;
+    // Star filter now creates per-star OR conditions with both tourHotels and description checks
+    expect(cond.OR).toHaveLength(2); // one condition per valid star (4 and 5)
+    // First condition should match star 4
     expect(cond.OR[0]).toEqual({
-      tourHotels: { some: { hotelClass: { in: [4, 5] } } },
+      OR: [
+        { tourHotels: { some: { hotelClass: { equals: 4 } } } },
+        {
+          AND: [
+            { description: { startsWith: "★★★★" } },
+            { description: { not: { startsWith: "★★★★★" } } },
+          ],
+        },
+      ],
+    });
+    // Second condition should match star 5
+    expect(cond.OR[1]).toEqual({
+      OR: [
+        { tourHotels: { some: { hotelClass: { equals: 5 } } } },
+        {
+          AND: [
+            { description: { startsWith: "★★★★★" } },
+          ],
+        },
+      ],
     });
   });
 

@@ -14,10 +14,12 @@
     "version:major": "bash scripts/version.sh major",
     "version:list": "bash scripts/version.sh list",
     "version:rollback": "bash scripts/version.sh rollback",
-    "version:changelog": "bash scripts/version.sh changelog"
+    "version:changelog": "bash scripts/version.sh changelog",
+    "check:i18n": "tsx scripts/check-i18n-keys.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "@stripe/stripe-js": "^9.12.1",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.7",
     "jose": "^5.9.6",
@@ -25,7 +27,8 @@
     "next": "16.2.11",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-leaflet": "^5.0.0"
+    "react-leaflet": "^5.0.0",
+    "stripe": "^22.3.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

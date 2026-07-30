@@ -18,6 +18,7 @@ export interface Service {
   amenities?: string[];
   type?: string;
   providerName?: string;
+  duration?: string | null;
 }
 
 const typeToRoute: Record<string, string> = {
@@ -60,6 +61,13 @@ function ServiceCardInner({ service }: { service: Service }) {
                 {tag}
               </span>
             ))}
+          </div>
+        )}
+
+        {/* Duration badge (for one-day tours) */}
+        {service.duration && (
+          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-secondary text-xs font-medium px-2 py-1 rounded-full">
+            ⏱ {service.duration}
           </div>
         )}
 

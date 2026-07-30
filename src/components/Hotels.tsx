@@ -35,7 +35,7 @@ function StarRating({ rating }: { rating: number }) {
 function SkeletonCard() {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
-      <div className="h-52 bg-gray-200" />
+      <div className="h-48 bg-gray-200" />
       <div className="p-5 space-y-3">
         <div className="h-5 bg-gray-200 rounded w-2/3" />
         <div className="h-4 bg-gray-200 rounded w-1/3" />
@@ -58,8 +58,8 @@ export default function Hotels() {
     async function fetchData() {
       try {
         const [hotelRes, sanRes] = await Promise.all([
-          fetch("/api/services?type=HOTEL&limit=3&sort=popular"),
-          fetch("/api/services?type=SANATORIUM&limit=3&sort=popular"),
+          fetch("/api/services?type=HOTEL&limit=4&sort=popular"),
+          fetch("/api/services?type=SANATORIUM&limit=4&sort=popular"),
         ]);
         if (hotelRes.ok) {
           const hd = await hotelRes.json();
@@ -90,9 +90,10 @@ export default function Hotels() {
             </div>
             <a href="/hotels" className="hidden md:inline-flex items-center gap-1 text-primary font-medium hover:text-primary-dark transition-colors">{t("hotels.viewAll")}</a>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {loading ? (
               <>
+                <SkeletonCard />
                 <SkeletonCard />
                 <SkeletonCard />
                 <SkeletonCard />
@@ -110,7 +111,7 @@ export default function Hotels() {
             ) : (
               hotels.map((h) => (
                 <a key={h.id} href={`/hotels/${h.id}`} className="group card-hover bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-primary/30">
-                  <div className="relative h-52 overflow-hidden">
+                  <div className="relative h-48 overflow-hidden">
                     <img src={h.images?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80"} alt={h.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                     <div className="absolute top-3 left-3"><StarRating rating={h.rating} /></div>
                   </div>
@@ -152,9 +153,10 @@ export default function Hotels() {
             </div>
             <a href="/sanatoriums" className="hidden md:inline-flex items-center gap-1 text-primary font-medium hover:text-primary-dark transition-colors">{t("sanatoriums.viewAll")}</a>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {loading ? (
               <>
+                <SkeletonCard />
                 <SkeletonCard />
                 <SkeletonCard />
                 <SkeletonCard />
@@ -172,7 +174,7 @@ export default function Hotels() {
             ) : (
               sanatoriums.map((s) => (
                 <a key={s.id} href={`/sanatoriums/${s.id}`} className="group card-hover bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-accent/30">
-                  <div className="relative h-52 overflow-hidden">
+                  <div className="relative h-48 overflow-hidden">
                     <img src={s.images?.[0] || "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=600&q=80"} alt={s.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   </div>
                   <div className="p-5">

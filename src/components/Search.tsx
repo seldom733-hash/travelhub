@@ -95,34 +95,37 @@ export default function Search() {
     router.push(`${catalogPath}/${suggestion.id}`);
   };
 
-  const touristText = tourists === 1 ? "tourist" : tourists < 5 ? "tourists" : "tourists";
+  const touristText = tourists === 1 ? "tourist" : "tourists";
 
   return (
-    <section id="search" className="py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-secondary mb-3">
+    <section id="search" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10">
+          <span className="inline-block bg-primary/10 text-primary text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+            🔍 {t("search.title")}
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-secondary mb-3">
             {t("search.title")}
           </h2>
-          <p className="text-gray-500 text-lg">
+          <p className="text-gray-500 text-lg max-w-2xl mx-auto">
             {t("search.subtitle")}
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8 max-w-5xl mx-auto border border-gray-100">
+        <div className="bg-white rounded-3xl shadow-2xl shadow-gray-200/60 p-6 md:p-8 max-w-5xl mx-auto border border-gray-100">
           {/* Type Selector */}
-          <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-            <span className="text-sm font-medium text-gray-500 shrink-0 mr-2">
+          <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
+            <span className="text-sm font-medium text-gray-400 shrink-0 mr-2">
               {t("search.whatLooking")}
             </span>
             {searchTypeKeys.map((type) => (
               <button
                 key={type.key}
                 onClick={() => setSelectedType(type.key)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
                   selectedType === type.key
-                    ? "bg-primary text-white shadow-md shadow-primary/30"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/30 scale-105"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800"
                 }`}
               >
                 <span>{type.icon}</span>
@@ -138,26 +141,26 @@ export default function Search() {
                 {t("search.destination")}
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">📍</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">📍</span>
                 <input
                   type="text"
                   placeholder={t("search.destinationPlaceholder")}
                   value={destination}
                   onChange={(e) => handleDestinationChange(e.target.value)}
                   onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                  className="w-full h-12 pl-10 pr-4 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none transition-colors text-sm bg-gray-50"
+                  className="w-full h-12 pl-11 pr-4 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm text-gray-900 bg-gray-50/50 hover:bg-white"
                 />
                 {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-50 max-h-80 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl shadow-gray-300/40 border border-gray-100 z-50 max-h-80 overflow-y-auto">
                     {suggestions.map((s) => (
                       <button
                         key={s.id}
                         onClick={() => handleSuggestionClick(s)}
-                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors text-left"
+                        className="w-full flex items-center gap-3 p-3 hover:bg-primary/5 transition-colors text-left border-b border-gray-50 last:border-0"
                       >
                         <img src={s.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=100&q=80"} alt={s.title} className="w-12 h-12 rounded-lg object-cover shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-secondary text-sm truncate">{s.title}</p>
+                          <p className="font-semibold text-gray-900 text-sm truncate">{s.title}</p>
                           <p className="text-xs text-gray-500">{typeIcons[s.type] || "📦"} {s.city}, {s.country}</p>
                           {s.providerName && <p className="text-xs text-gray-400">🏢 {s.providerName}</p>}
                         </div>
@@ -177,8 +180,8 @@ export default function Search() {
                 {t("search.checkIn")}
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">📅</span>
-                <input type="date" className="w-full h-12 pl-10 pr-4 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none transition-colors text-sm bg-gray-50" />
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">📅</span>
+                <input type="date" className="w-full h-12 pl-11 pr-4 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm text-gray-900 bg-gray-50/50 hover:bg-white" />
               </div>
             </div>
 
@@ -187,8 +190,8 @@ export default function Search() {
                 {t("search.checkOut")}
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">📅</span>
-                <input type="date" className="w-full h-12 pl-10 pr-4 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none transition-colors text-sm bg-gray-50" />
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">📅</span>
+                <input type="date" className="w-full h-12 pl-11 pr-4 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm text-gray-900 bg-gray-50/50 hover:bg-white" />
               </div>
             </div>
           </div>
@@ -198,19 +201,19 @@ export default function Search() {
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 {t("search.tourists")}
               </label>
-              <div className="flex items-center gap-3 h-12 px-4 rounded-xl border-2 border-gray-200 bg-gray-50">
+              <div className="flex items-center gap-3 h-12 px-4 rounded-xl border-2 border-gray-200 bg-gray-50/50 hover:bg-white transition-all">
                 <button
                   onClick={() => setTourists(Math.max(1, tourists - 1))}
-                  className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-sm font-bold transition-colors"
+                  className="w-8 h-8 rounded-full bg-gray-200 hover:bg-primary hover:text-white flex items-center justify-center text-sm font-bold transition-all"
                 >
                   −
                 </button>
-                <span className="flex-1 text-center text-sm font-semibold text-secondary">
+                <span className="flex-1 text-center text-sm font-bold text-gray-900">
                   {tourists} {touristText}
                 </span>
                 <button
                   onClick={() => setTourists(Math.min(20, tourists + 1))}
-                  className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-sm font-bold transition-colors"
+                  className="w-8 h-8 rounded-full bg-gray-200 hover:bg-primary hover:text-white flex items-center justify-center text-sm font-bold transition-all"
                 >
                   +
                 </button>
@@ -222,11 +225,11 @@ export default function Search() {
                 {t("search.price")}
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">💰</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">💰</span>
                 <input
                   type="text"
                   placeholder={t("search.pricePlaceholder")}
-                  className="w-full h-12 pl-10 pr-4 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none transition-colors text-sm bg-gray-50"
+                  className="w-full h-12 pl-11 pr-4 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm text-gray-900 bg-gray-50/50 hover:bg-white"
                 />
               </div>
             </div>
@@ -235,9 +238,9 @@ export default function Search() {
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 {t("search.rating")}
               </label>
-              <div className="flex items-center gap-2 h-12 px-4 rounded-xl border-2 border-gray-200 bg-gray-50">
+              <div className="flex items-center gap-2 h-12 px-4 rounded-xl border-2 border-gray-200 bg-gray-50/50">
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <button key={star} className="text-xl hover:scale-125 transition-transform">★</button>
+                  <button key={star} className="text-xl text-star hover:scale-125 transition-transform">★</button>
                 ))}
               </div>
             </div>
@@ -252,8 +255,9 @@ export default function Search() {
                 if (tourists > 1) params.set("tourists", String(tourists));
                 router.push(`${catalogPath}?${params.toString()}`);
               }}
-              className="w-full h-14 bg-primary hover:bg-primary-dark text-white rounded-2xl font-bold text-lg transition-all hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98]"
+              className="w-full h-14 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white rounded-2xl font-bold text-lg transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] flex items-center justify-center gap-2"
             >
+              <span>🔍</span>
               {t("search.findButton")}
             </button>
           </div>

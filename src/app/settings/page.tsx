@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import Breadcrumb from "@/components/Breadcrumb";
+import NotificationsTab from "@/components/NotificationsTab";
 
 export default function SettingsPage() {
   const { t } = useI18n();
@@ -328,28 +329,7 @@ export default function SettingsPage() {
             )}
 
             {activeTab === "notifications" && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-secondary mb-6">Уведомления <span className="text-sm font-normal text-gray-400">(Скоро)</span></h2>
-                <div className="space-y-4 opacity-60 pointer-events-none">
-                  {[
-                    { label: "Email уведомления о бронированиях", desc: "Получать письма о статусе бронирований", defaultChecked: true },
-                    { label: "Push уведомления", desc: "Уведомления в браузере", defaultChecked: true },
-                    { label: "SMS уведомления", desc: "Важные обновления по SMS", defaultChecked: false },
-                    { label: "Рекомендации", desc: "Персональные рекомендации и акции", defaultChecked: true },
-                  ].map((item) => (
-                    <div key={item.label} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                      <div>
-                        <p className="font-medium text-secondary text-sm">{item.label}</p>
-                        <p className="text-xs text-gray-500">{item.desc}</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" defaultChecked={item.defaultChecked} className="sr-only peer" />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <NotificationsTab />
             )}
 
             {activeTab === "language" && (

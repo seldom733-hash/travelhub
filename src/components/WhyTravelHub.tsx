@@ -1,14 +1,24 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n-context";
 
+interface Stats {
+  services: { tours: number; hotels: number; sanatoriums: number; excursions: number; flights: number; trains: number; guides: number; photographers: number; transfers: number };
+}
+
+function fmt(n: number): string {
+  if (n >= 1000) return `${Math.floor(n / 1000)} 000+`;
+  return `${n}+`;
+}
+
 const statsKeys = [
-  { icon: "🏖", value: "35 000+", key: "tours", color: "from-primary to-orange-500" },
-  { icon: "🏨", value: "42 000+", key: "hotels", color: "from-blue-500 to-blue-600" },
-  { icon: "🏛", value: "12 000+", key: "excursions", color: "from-emerald-500 to-emerald-600" },
-  { icon: "🧭", value: "2 500+", key: "guides", color: "from-violet-500 to-violet-600" },
-  { icon: "📷", value: "1 800+", key: "photographers", color: "from-pink-500 to-pink-600" },
-  { icon: "🚐", value: "4 000+", key: "transfers", color: "from-amber-500 to-amber-600" },
+  { icon: "🏖", apiType: "tours" as const, fallback: 35000, key: "tours", color: "from-primary to-orange-500" },
+  { icon: "🏨", apiType: "hotels" as const, fallback: 42000, key: "hotels", color: "from-blue-500 to-blue-600" },
+  { icon: "🏛", apiType: "excursions" as const, fallback: 12000, key: "excursions", color: "from-emerald-500 to-emerald-600" },
+  { icon: "🧭", apiType: "guides" as const, fallback: 2500, key: "guides", color: "from-violet-500 to-violet-600" },
+  { icon: "📷", apiType: "photographers" as const, fallback: 1800, key: "photographers", color: "from-pink-500 to-pink-600" },
+  { icon: "🚐", apiType: "transfers" as const, fallback: 4000, key: "transfers", color: "from-amber-500 to-amber-600" },
 ];
 
 const badgeKeys = [
@@ -20,6 +30,14 @@ const badgeKeys = [
 
 export default function WhyTravelHub() {
   const { t } = useI18n();
+  const [stats, setStats] = useState<Stats | null>(null);
+
+  useEffect(() => {
+    fetch("/api/stats")
+      .then((r) => r.json())
+      .then((data) => setStats(data))
+      .catch(() => {});
+  }, []);
   return (
     <section className="py-20 bg-gradient-to-br from-secondary via-gray-900 to-secondary overflow-hidden relative">
       <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
@@ -35,7 +53,7 @@ export default function WhyTravelHub() {
           {statsKeys.map((stat) => (
             <div key={stat.key} className="group text-center p-6 rounded-3xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-primary/40 transition-all card-hover">
               <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-3xl group-hover:scale-110 transition-transform`}>{stat.icon}</div>
-              <div className="text-2xl md:text-3xl font-bold text-white mb-1">{stat.value}</div>
+              <div className="text-2xl md:text-3xl font-bold text-white mb-1">{fmt(stats?.services[stat.apiType] ?? stat.fallback)}</div>
               <div className="text-sm text-gray-400">{t(`whyTravelHub.stats.${stat.key}`)}</div>
             </div>
           ))}

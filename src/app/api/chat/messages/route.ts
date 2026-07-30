@@ -87,6 +87,14 @@ export async function POST(request: NextRequest) {
       data: { updatedAt: new Date() },
     });
 
+    // Broadcast to SSE listeners for real-time delivery
+    try {
+      const { broadcastMessage } = await import("@/app/api/chat/stream/route");
+      broadcastMessage(conversationId, message);
+    } catch {
+      // SSE module may not be loaded — non-critical
+    }
+
     return NextResponse.json({ message }, { status: 201 });
   } catch (error) {
     console.error("Message send error:", error);

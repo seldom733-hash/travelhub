@@ -130,10 +130,120 @@ export const MEETING_KEYWORDS: Record<string, string[]> = {
   board: ["Табличка", "Ad lövhəsi", "табличк", "board"],
 };
 
-/* ── Room name map ── */
-export const ROOM_NAME_MAP: Record<string, string[]> = {
-  standard: ["Стандартный", "Standard"],
-  deluxe: ["Делюкс", "Deluxe"],
+/* ── Room type name map (slug → display names) ── */
+/* Keys must match ROOM_TYPES from @/lib/constants */
+export const ROOM_TYPE_MAP: Record<string, string[]> = {
+  standard: ["Стандартный", "Standard Room"],
+  superior: ["Улучшенный", "Superior Room"],
+  deluxe: ["Делюкс", "Deluxe Room"],
+  premium: ["Премиум", "Premium Room"],
+  executive: ["Представительский", "Executive Room"],
+  club: ["Клубный", "Club Room"],
+  family: ["Семейный", "Family Room"],
+  studio: ["Студия", "Studio"],
+  junior_suite: ["Полулюкс", "Junior Suite"],
   suite: ["Люкс", "Suite"],
-  family: ["Семейный", "Family"],
+  executive_suite: ["Представительский люкс", "Executive Suite"],
+  presidential_suite: ["Президентский люкс", "Presidential Suite"],
+  royal_suite: ["Королевский люкс", "Royal Suite"],
+  honeymoon_suite: ["Свадебный люкс", "Honeymoon Suite"],
+  apartment: ["Апартаменты", "Apartment"],
+  villa: ["Вилла", "Villa"],
+  bungalow: ["Бунгало", "Bungalow"],
+  cottage: ["Коттедж", "Cottage"],
+  chalet: ["Шале", "Chalet"],
+  duplex: ["Двухуровневый", "Duplex"],
+  penthouse: ["Пентхаус", "Penthouse"],
+  accessible: ["Для гостей с ОВЗ", "Accessible Room"],
+  connecting_rooms: ["Смежные номера", "Connecting Rooms"],
+};
+
+
+
+/* ── Bed type name map ── */
+/* Keys must match BED_TYPES from @/lib/constants */
+export const BED_TYPE_MAP: Record<string, string[]> = {
+  single: ["Односпальная", "Single Bed"],
+  twin: ["2 односпальные", "Twin Beds"],
+  double: ["Двуспальная", "Double Bed"],
+  queen: ["Queen", "Queen Bed"],
+  king: ["King", "King Bed"],
+  super_king: ["Super King", "Super King Bed"],
+  sofa: ["Диван-кровать", "Sofa Bed"],
+  bunk: ["Двухъярусная", "Bunk Bed"],
+  baby_cot: ["Детская кроватка", "Baby Cot"],
+  extra_bed: ["Дополнительная кровать", "Extra Bed"],
+};
+
+/* ── View name map ── */
+/* Keys must match VIEWS from @/lib/constants */
+export const VIEW_MAP: Record<string, string[]> = {
+  city: ["Вид на город", "City View"],
+  sea: ["Вид на море", "Sea View"],
+  sea_direct: ["Прямой вид на море", "Direct Sea View"],
+  sea_partial: ["Частичный вид на море", "Partial Sea View"],
+  pool: ["Вид на бассейн", "Pool View"],
+  garden: ["Вид на сад", "Garden View"],
+  mountain: ["Вид на горы", "Mountain View"],
+  lake: ["Вид на озеро", "Lake View"],
+  park: ["Вид на парк", "Park View"],
+  river: ["Вид на реку", "River View"],
+  no_view: ["Без вида", "No View"],
+  panoramic: ["Панорамный вид", "Panoramic View"],
+};
+
+/* ── Smoking name map ── */
+/* Keys must match SMOKING_OPTIONS from @/lib/constants */
+export const SMOKING_MAP: Record<string, string[]> = {
+  non_smoking: ["Для некурящих", "Non-Smoking"],
+  smoking: ["Для курящих", "Smoking"],
+};
+
+/* ── Balcony name map ── */
+/* Keys must match BALCONY_OPTIONS from @/lib/constants */
+export const BALCONY_MAP: Record<string, string[]> = {
+  no_balcony: ["Без балкона", "No Balcony"],
+  balcony: ["Балкон", "Balcony"],
+  french_balcony: ["Французский балкон", "French Balcony"],
+  terrace: ["Терраса", "Terrace"],
+  private_garden: ["Частный сад", "Private Garden"],
+};
+
+/* ── Bathroom name map ── */
+/* Keys must match BATHROOM_OPTIONS from @/lib/constants */
+export const BATHROOM_MAP: Record<string, string[]> = {
+  shower: ["Душ", "Shower"],
+  bathtub: ["Ванна", "Bathtub"],
+  jacuzzi: ["Джакузи", "Jacuzzi"],
+  private_pool: ["Собственный бассейн", "Private Pool"],
+  shared: ["Общая ванная комната", "Shared Bathroom"],
+};
+
+/* ── Excursion duration keywords (mapped to shared durationFitsRange ranges) ── */
+export const EXCURSION_DURATION_KEYWORDS: Record<string, string[]> = {
+  "2": ["1 час", "2 часа"],
+  "4": ["3 часа", "4 часа", "5 часов", "Полдня"],
+  "8": ["6 часов", "7 часов", "8 часов"],
+  full: ["Весь день"],
+  multi: ["дн"],
+};
+
+/* ── Room amenities map ── */
+export const ROOM_AMENITIES_MAP: Record<string, string[]> = {
+  wifi: ["Wi-Fi", "WiFi"],
+  aircon: ["Кондиционер", "Air conditioner"],
+  minibar: ["Мини-бар", "Minibar"],
+  safe: ["Сейф", "Safe"],
+  tv: ["Телевизор", "TV", "Телевізор"],
+  coffee: ["Кофемашина", "Coffee machine"],
+  kettle: ["Чайник", "Kettle"],
+  desk: ["Рабочий стол", "Desk"],
+  kitchen: ["Кухня", "Kitchen"],
+  fridge: ["Холодильник", "Fridge"],
+  washer: ["Стиральная машина", "Washing machine"],
+  hairdryer: ["Фен", "Hairdryer"],
+  bathrobes: ["Халаты", "Bathrobes"],
+  slippers: ["Тапочки", "Slippers"],
+  microwave: ["Микроволновая печь", "Microwave"],
+  iron: ["Утюг", "Iron"],
 };

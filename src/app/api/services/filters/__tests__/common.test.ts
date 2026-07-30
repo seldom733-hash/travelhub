@@ -91,7 +91,7 @@ describe("applyCommonFilters", () => {
     const { ctx, params } = createFilterContext({ cancellation: ["free"] });
     applyCommonFilters({ ctx, params });
     expect(ctx.andConditions).toContainEqual({
-      description: { contains: "Бесплатная отмена" },
+      freeCancellation: true,
     });
   });
 

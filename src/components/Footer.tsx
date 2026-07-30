@@ -1,9 +1,28 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n-context";
+
+interface Stats {
+  services: { tours: number; hotels: number; sanatoriums: number; excursions: number; flights: number; trains: number; guides: number; photographers: number; transfers: number };
+  users: number;
+  partners: number;
+}
 
 export default function Footer() {
   const { t } = useI18n();
+  const [stats, setStats] = useState<Stats | null>(null);
+
+  useEffect(() => {
+    fetch("/api/stats")
+      .then((r) => r.json())
+      .then((data) => setStats(data))
+      .catch(() => {});
+  }, []);
+
+  const totalServices = stats
+    ? stats.services.tours + stats.services.hotels + stats.services.sanatoriums + stats.services.excursions + stats.services.flights + stats.services.trains + stats.services.guides + stats.services.photographers + stats.services.transfers
+    : 0;
 
   const companyLinks = [
     { labelKey: "footer.about", href: "/about" },
@@ -12,10 +31,10 @@ export default function Footer() {
   ];
 
   const categoryLinks = [
-    { labelKey: "footer.tours", href: "/tours" },
-    { labelKey: "footer.hotels", href: "/hotels" },
-    { labelKey: "footer.sanatoriums", href: "/sanatoriums" },
-    { labelKey: "footer.excursions", href: "/excursions" },
+    { labelKey: "footer.tours", href: "/tours", count: stats?.services.tours },
+    { labelKey: "footer.hotels", href: "/hotels", count: stats?.services.hotels },
+    { labelKey: "footer.sanatoriums", href: "/sanatoriums", count: stats?.services.sanatoriums },
+    { labelKey: "footer.excursions", href: "/excursions", count: stats?.services.excursions },
   ];
 
   const partnerLinks = [
@@ -40,6 +59,28 @@ export default function Footer() {
   return (
     <footer className="bg-secondary text-white">
       <div className="max-w-7xl mx-auto px-4 py-16">
+        {/* Stats bar */}
+        {stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-12 pb-12 border-b border-white/10">
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl font-extrabold text-primary mb-1">{totalServices.toLocaleString()}+</div>
+              <div className="text-sm text-gray-400">{t("footer.services")}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl font-extrabold text-primary mb-1">{stats.users.toLocaleString()}+</div>
+              <div className="text-sm text-gray-400">{t("footer.users")}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl font-extrabold text-primary mb-1">{stats.partners.toLocaleString()}+</div>
+              <div className="text-sm text-gray-400">{t("footer.partnersCount")}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl font-extrabold text-primary mb-1">{stats.services.excursions.toLocaleString()}+</div>
+              <div className="text-sm text-gray-400">{t("footer.excursions")}</div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
           <div className="col-span-2 md:col-span-3 lg:col-span-1 mb-4 lg:mb-0">
             <a href="/" className="flex items-center gap-2 mb-4">
@@ -60,7 +101,14 @@ export default function Footer() {
               <h4 className="font-semibold text-white mb-4">{t(section.titleKey)}</h4>
               <ul className="space-y-2.5">
                 {section.links.map((link) => (
-                  <li key={link.labelKey}><a href={link.href} className="text-sm text-gray-400 hover:text-primary transition-colors">{t(link.labelKey)}</a></li>
+                  <li key={link.labelKey}>
+                    <a href={link.href} className="text-sm text-gray-400 hover:text-primary transition-colors">
+                      {t(link.labelKey)}
+                      {"count" in link && link.count != null && (
+                        <span className="ml-1.5 text-[10px] text-gray-500">({link.count.toLocaleString()})</span>
+                      )}
+                    </a>
+                  </li>
                 ))}
               </ul>
             </div>

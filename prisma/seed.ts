@@ -1,5 +1,11 @@
 import { PrismaClient, UserRole, PartnerType, ServiceType, BookingStatus, UserLevel, TourCategory } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import {
+  ROOM_TYPES, ROOM_TYPE_NAMES, ROOM_TYPE_NAMES_RU,
+  BED_TYPES, VIEWS, SMOKING_OPTIONS, BALCONY_OPTIONS,
+  BATHROOM_OPTIONS, AREA_OPTIONS, OCCUPANCY_OPTIONS,
+  ROOM_AMENITIES_LIST, ROOM_BASE_PRICES, MEAL_PLANS, LANGUAGES,
+} from "../src/lib/constants";
 
 const prisma = new PrismaClient();
 
@@ -66,7 +72,6 @@ const TRANSFER_IMAGES = [
   "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80",
 ];
 
-const LANGUAGES = ["RU", "EN", "TR", "AZ", "GE", "DE", "FR", "IT", "ES", "TH", "EL"];
 const AMENITIES = [
   { name: "Wi-Fi", icon: "📶" }, { name: "Бассейн", icon: "🏊" }, { name: "Спа", icon: "💆" },
   { name: "Ресторан", icon: "🍽" }, { name: "Парковка", icon: "🅿" }, { name: "Кондиционер", icon: "❄" },
@@ -74,13 +79,11 @@ const AMENITIES = [
   { name: "Детская площадка", icon: "🎠" },
 ];
 
-const MEAL_PLANS = ["RO", "BB", "HB", "FB", "AI"];
-const ROOM_TYPES = ["standard", "economy", "comfort", "deluxe", "suite", "family"];
-
+// Constants imported from shared file
 // ==================== HELPERS ====================
 
-function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
-function pickN<T>(arr: T[], n: number): T[] {
+function pick<T>(arr: readonly T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+function pickN<T>(arr: readonly T[], n: number): T[] {
   const shuffled = [...arr].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, Math.min(n, arr.length));
 }
@@ -107,8 +110,7 @@ function generateDescription(type: string, city: string, country: string): strin
   const mealNames: Record<string, string> = { RO: "Без питания", BB: "Завтрак включён", HB: "Полупансион", FB: "Полный пансион", AI: "Всё включено" };
   const mealName = mealNames[meal] || "Завтрак включён";
   const room = pick(ROOM_TYPES);
-  const roomNames: Record<string, string> = { standard: "Стандартный", economy: "Эконом", comfort: "Комфорт", deluxe: "Делюкс", suite: "Люкс", family: "Семейный" };
-  const roomName = roomNames[room] || "Стандартный";
+  const roomName = ROOM_TYPE_NAMES_RU[room] || "Стандартный";
   const distance = pick(["на пляже", "100м от пляжа", "300м от пляжа", "500м от пляжа", "1 км от пляжа"]);
   const hasPool = Math.random() > 0.3;
   const hasSpa = Math.random() > 0.4;
@@ -277,6 +279,7 @@ async function main() {
     duration: string | null; maxGuests: number | null;
     languages: string; isActive: boolean; isFeatured: boolean;
     isHot: boolean; hotDiscount: number | null; providerId: string;
+    freeCancellation: boolean;
   }> = [];
 
   for (const type of serviceTypes) {
@@ -293,7 +296,7 @@ async function main() {
       const hasDiscount = Math.random() > 0.7;
       const rating = randFloat(3.5, 5.0);
       const reviewCount = randInt(0, 800);
-      const duration = type === "HOTEL" ? "1 ночь" : type === "FLIGHT" ? `${randInt(1, 12)}ч ${randInt(0, 59)}м` : `${randInt(1, 14)} часов`;
+      const duration = type === "HOTEL" ? "1 ночь" : type === "FLIGHT" ? `${randInt(1, 12)}ч ${randInt(0, 59)}м` : type === "TOUR" ? `${pick(["1 день", "2 дня", "3 дня", "4 дня", "5 дней", "6 дней", "7 дней", "8 дней", "10 дней", "14 дней"])}` : type === "EXCURSION" ? `${pick(["2 часа", "3 часа", "4 часа", "5 часов", "6 часов", "7 часов", "8 часов", "Полдня", "Весь день"])}` : `${randInt(1, 14)} часов`;
       const maxGuests = type === "FLIGHT" ? 1 : type === "HOTEL" ? 4 : randInt(2, 20);
 
       servicesToCreate.push({
@@ -311,6 +314,7 @@ async function main() {
         isHot: Math.random() > 0.8,
         hotDiscount: Math.random() > 0.8 ? randInt(5, 25) : null,
         providerId: partner.id,
+        freeCancellation: Math.random() > 0.5,
       });
     }
   }
@@ -412,6 +416,7 @@ async function main() {
         isHot: Math.random() > 0.6,
         hotDiscount: Math.random() > 0.7 ? randInt(5, 20) : null,
         providerId: tourOperatorPartner.id,
+        freeCancellation: Math.random() > 0.5,
       },
       select: { id: true },
     });
@@ -534,6 +539,49 @@ async function main() {
   }
   console.log(`📅 Created ${scheduleData.length} schedules`);
 
+  // ==================== ROOM TYPES (for HOTEL services) ====================
+  console.log("🛏  Creating room types...");
+  const hotelServicesForRooms = createdServices.filter((s) => s.type === "HOTEL");
+  let roomTypeCount = 0;
+
+  for (const svc of hotelServicesForRooms) {
+    // Each hotel gets 2-5 random room types
+    const selectedRooms = pickN(ROOM_TYPES, randInt(2, 5));
+    for (let idx = 0; idx < selectedRooms.length; idx++) {
+      const slug = selectedRooms[idx];
+      const name = ROOM_TYPE_NAMES[slug] || slug;
+      const [base, child] = ROOM_BASE_PRICES[slug] || [80, 40];
+
+      await prisma.roomType.create({
+        data: {
+          serviceId: svc.id,
+          name,
+          slug,
+          description: `${name} — комфортный номер с современными удобствами`,
+          maxAdults: slug === "studio" || slug === "standard" ? 2 : slug.includes("family") || slug === "connecting_rooms" ? 4 : 3,
+          maxChildren: slug.includes("family") || slug === "connecting_rooms" ? 2 : 1,
+          basePrice: base + randInt(-10, 30),
+          currency: "AZN",
+          images: pickN(HOTEL_IMAGES, 1).join(","),
+          amenities: pickN(ROOM_AMENITIES_LIST, randInt(4, 8)).join(","),
+          sortOrder: idx,
+          isActive: true,
+          // New filter attributes
+          bedType: pick(BED_TYPES),
+          view: pick(VIEWS),
+          smoking: pick(SMOKING_OPTIONS),
+          balcony: pick(BALCONY_OPTIONS),
+          bathroom: pick(BATHROOM_OPTIONS),
+          area: pick(AREA_OPTIONS),
+          occupancy: pick(OCCUPANCY_OPTIONS),
+          roomCount: randInt(2, 20),
+        },
+      });
+      roomTypeCount++;
+    }
+  }
+  console.log(`🛏  Created ${roomTypeCount} room types for ${hotelServicesForRooms.length} hotels`);
+
   // ==================== PRICE VARIANTS (for first 200 HOTEL/TOUR services) ====================
   console.log("💰 Creating price variants...");
   const variantData: Array<{
@@ -554,7 +602,7 @@ async function main() {
 
     for (const room of pickN(ROOM_TYPES, randInt(2, 4))) {
       for (const meal of pickN(MEAL_PLANS, randInt(2, 4))) {
-        const roomMod = room === "suite" ? 60 : room === "deluxe" ? 30 : room === "family" ? 40 : room === "comfort" ? 10 : room === "economy" ? -20 : 0;
+        const roomMod = room === "suite" ? 60 : room === "deluxe" ? 30 : room === "family" ? 40 : room === "standard" ? 0 : 10;
         const mealMod = meal === "AI" ? 45 : meal === "FB" ? 30 : meal === "HB" ? 15 : 0;
         for (const adults of [2, 3]) {
           for (const children of [0, 1]) {

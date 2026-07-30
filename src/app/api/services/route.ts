@@ -104,6 +104,31 @@ export async function GET(request: NextRequest) {
       ? Math.min(total, mappedServices.length + (page - 1) * limit)
       : total;
 
+    // ── Filter facets for HOTEL type (distinct room attribute values) ──
+    let facets: Record<string, string[]> | undefined;
+    if (type === "HOTEL") {
+      try {
+        const serviceIds = services.map(s => s.id);
+        if (serviceIds.length > 0) {
+          const roomTypes = await prisma.roomType.findMany({
+            where: { serviceId: { in: serviceIds }, isActive: true },
+            select: { bedType: true, view: true, smoking: true, balcony: true, bathroom: true, area: true, occupancy: true },
+          });
+          facets = {
+            bedType: [...new Set(roomTypes.map(r => r.bedType).filter(Boolean) as string[])],
+            view: [...new Set(roomTypes.map(r => r.view).filter(Boolean) as string[])],
+            smoking: [...new Set(roomTypes.map(r => r.smoking).filter(Boolean) as string[])],
+            balcony: [...new Set(roomTypes.map(r => r.balcony).filter(Boolean) as string[])],
+            bathroom: [...new Set(roomTypes.map(r => r.bathroom).filter(Boolean) as string[])],
+            area: [...new Set(roomTypes.map(r => r.area).filter(Boolean) as string[])],
+            occupancy: [...new Set(roomTypes.map(r => r.occupancy).filter(Boolean) as string[])],
+          };
+        }
+      } catch {
+        // Facets are optional — ignore errors
+      }
+    }
+
     // ── Tour category counts (when showing TOUR type) ──
     let tourCounts;
     if (type === "TOUR") {
@@ -123,6 +148,7 @@ export async function GET(request: NextRequest) {
       services: mappedServices,
       pagination: { total: filteredTotal, page, limit, pages: Math.ceil(filteredTotal / limit) },
       tourCounts,
+      facets,
     };
 
     // ── Cache response with stale-while-revalidate ──

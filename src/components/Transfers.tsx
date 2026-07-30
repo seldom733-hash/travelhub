@@ -37,7 +37,7 @@ function StarRating({ rating }: { rating: number }) {
 function SkeletonCard() {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
-      <div className="h-52 bg-gray-200" />
+      <div className="h-48 bg-gray-200" />
       <div className="p-5 space-y-3">
         <div className="h-5 bg-gray-200 rounded w-2/3" />
         <div className="h-4 bg-gray-200 rounded w-1/3" />
@@ -91,7 +91,7 @@ export default function Transfers() {
           ) : (
             transfers.map((tr) => (
               <a key={tr.id} href={`/transfers/${tr.id}`} className="group card-hover bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-primary/30">
-                <div className="relative h-44 overflow-hidden">
+                <div className="relative h-48 overflow-hidden">
                   <img src={tr.images?.[0] || "https://images.unsplash.com/photo-1449965408869-ebd3fee19d3e?w=600&q=80"} alt={tr.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   {tr.duration && (
                     <div className="absolute top-3 left-3">

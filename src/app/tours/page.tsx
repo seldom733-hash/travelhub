@@ -40,6 +40,7 @@ function mapTourService(s: Record<string, unknown>, t: (key: string) => string):
     tags: s.isHot ? ["🔥"] : s.discountPrice ? ["-"] : undefined,
     amenities: (s.amenities as { name: string }[])?.map((a) => a.name).slice(0, 3),
     providerName: getProviderName(s.provider as ProviderInfo),
+    duration: s.duration as string | null,
   };
 }
 
@@ -89,7 +90,7 @@ export default function ToursPage() {
           <div className="flex items-center gap-2 bg-white rounded-2xl p-2 border border-gray-100 mb-6">
             {[
               { value: "", label: `🌍 ${t("filter.all") || 'Все'} (${tourCounts.all})` },
-              { value: "ONE_DAY", label: `☀️ ${t("filter.oneDay") || 'Однодневные'} (${tourCounts.oneDay})` },
+              { value: "ONE_DAY", label: `☀️ ${t("filter.oneDay") || 'Однодневные'} — ${t("filter.tour.nights0") || '0 ночей'} (${tourCounts.oneDay})` },
               { value: "MULTI_DAY", label: `🗓 ${t("filter.multiDay") || 'Многодневные'} (${tourCounts.multiDay})` },
             ].map((tab) => (
               <button key={tab.value} onClick={() => { setTourCategory(tab.value); }}

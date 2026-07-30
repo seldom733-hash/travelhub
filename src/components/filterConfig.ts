@@ -1,3 +1,9 @@
+import {
+  ROOM_TYPES, BED_TYPES, VIEWS,
+  SMOKING_OPTIONS, BALCONY_OPTIONS, BATHROOM_OPTIONS,
+  AREA_OPTIONS, OCCUPANCY_OPTIONS,
+} from "@/lib/constants";
+
 export type FilterType = "checkbox" | "radio" | "range" | "rating" | "date" | "country" | "city" | "region";
 
 export interface FilterOption {
@@ -12,22 +18,86 @@ export interface FilterDefinition {
   options?: FilterOption[];
   min?: number;
   max?: number;
+  /** Optional group header — filters sharing the same group are visually grouped under a label. */
+  group?: string;
 }
 
 export type ServiceCategory = "tour" | "hotel" | "sanatorium" | "excursion" | "guide" | "photographer" | "flight" | "train" | "transfer";
 
+// ── Helpers: generate FilterOption[] from shared constant arrays ──
+
+/** Map a slug array to FilterOption[] using a label prefix (e.g. "filter.hotel.roomTypes") */
+function slugOptions(slugs: readonly string[], labelPrefix: string): FilterOption[] {
+  return slugs.map(s => ({ label: `${labelPrefix}.${s}`, value: s }));
+}
+
+/** Room type options with i18n labels */
+const roomTypeOptions = slugOptions(ROOM_TYPES, "filter.hotel.roomTypes");
+
+/** Bed type options with i18n labels */
+const bedTypeOptions = slugOptions(BED_TYPES, "filter.hotel.bedTypes");
+
+/** Label maps for options where i18n keys don't follow the `${prefix}.${slug}` pattern */
+const VIEW_LABELS: Record<string, string> = {
+  city: "filter.hotel.viewCity", sea: "filter.hotel.viewSea",
+  sea_direct: "filter.hotel.viewSeaDirect", sea_partial: "filter.hotel.viewSeaPartial",
+  pool: "filter.hotel.viewPool", garden: "filter.hotel.viewGarden",
+  mountain: "filter.hotel.viewMountain", lake: "filter.hotel.viewLake",
+  park: "filter.hotel.viewPark", river: "filter.hotel.viewRiver",
+  no_view: "filter.hotel.viewNoView", panoramic: "filter.hotel.viewPanoramic",
+};
+const viewOptions: FilterOption[] = VIEWS.map(s => ({ label: VIEW_LABELS[s] ?? s, value: s }));
+
+const SMOKING_LABELS: Record<string, string> = {
+  non_smoking: "filter.hotel.nonSmoking", smoking: "filter.hotel.smokingOption",
+};
+const smokingOptions: FilterOption[] = SMOKING_OPTIONS.map(s => ({ label: SMOKING_LABELS[s] ?? s, value: s }));
+
+const BALCONY_LABELS: Record<string, string> = {
+  no_balcony: "filter.hotel.noBalcony", balcony: "filter.hotel.balconyOption",
+  french_balcony: "filter.hotel.frenchBalcony", terrace: "filter.hotel.terrace",
+  private_garden: "filter.hotel.privateGarden",
+};
+const balconyOptions: FilterOption[] = BALCONY_OPTIONS.map(s => ({ label: BALCONY_LABELS[s] ?? s, value: s }));
+
+const BATHROOM_LABELS: Record<string, string> = {
+  shower: "filter.hotel.shower", bathtub: "filter.hotel.bathtub",
+  jacuzzi: "filter.hotel.jacuzzi", private_pool: "filter.hotel.privatePool",
+  shared: "filter.hotel.sharedBathroom",
+};
+const bathroomOptions: FilterOption[] = BATHROOM_OPTIONS.map(s => ({ label: BATHROOM_LABELS[s] ?? s, value: s }));
+
+const AREA_LABELS: Record<string, string> = {
+  under_20: "filter.hotel.under20", "20_30": "filter.hotel.area20_30",
+  "30_50": "filter.hotel.area30_50", over_50: "filter.hotel.over50",
+};
+const areaOptions: FilterOption[] = AREA_OPTIONS.map(s => ({ label: AREA_LABELS[s] ?? s, value: s }));
+
+const OCCUPANCY_LABELS: Record<string, string> = {
+  sgl: "SGL", dbl: "DBL", twn: "TWN", tpl: "TPL", qdpl: "QDPL",
+  "2_1": "2+1", "2_2": "2+2", "3_1": "3+1", "4_1": "4+1",
+};
+const occupancyOptions: FilterOption[] = OCCUPANCY_OPTIONS.map(s => ({ label: OCCUPANCY_LABELS[s] ?? s, value: s }));
+
+/** Stars filter options (used by tour, hotel, sanatorium) */
+const starsOptions: FilterOption[] = [
+  { label: "filter.stars.none", value: "none" },
+  { label: "★★★★★", value: "5" },
+  { label: "★★★★", value: "4" },
+  { label: "★★★", value: "3" },
+  { label: "★★", value: "2" },
+  { label: "★", value: "1" },
+];
+
 export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
   // Туры: Страна, Город, Звёзды, Ночей, Питание, Тип отдыха, Первая линия, Всё включено, Для детей, SPA, Аквапарк, Горящие, Без визы, Рейтинг, Цена
   tour: [
+    // ── Туры ──
     { id: "country", i18nKey: "filter.country", type: "country" },
     { id: "city", i18nKey: "filter.city", type: "city" },
-    { id: "stars", i18nKey: "filter.tour.stars", type: "checkbox", options: [
-      { label: "★★★★★", value: "5" },
-      { label: "★★★★", value: "4" },
-      { label: "★★★", value: "3" },
-      { label: "★★", value: "2" },
-    ]},
+    { id: "startDate", i18nKey: "filter.startDate.tour", type: "date" },
     { id: "nights", i18nKey: "filter.tour.nights", type: "radio", options: [
+      { label: "filter.tour.nights0", value: "0" },
       { label: "filter.tour.nights1_3", value: "1-3" },
       { label: "filter.tour.nights4_7", value: "4-7" },
       { label: "filter.tour.nights8_14", value: "8-14" },
@@ -56,9 +126,6 @@ export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
     { id: "kids", i18nKey: "filter.tour.kids", type: "checkbox", options: [
       { label: "filter.tour.kids", value: "kids" },
     ]},
-    { id: "spa", i18nKey: "filter.tour.spa", type: "checkbox", options: [
-      { label: "filter.hotel.spa", value: "spa" },
-    ]},
     { id: "waterpark", i18nKey: "filter.tour.waterpark", type: "checkbox", options: [
       { label: "filter.hotel.waterpark", value: "waterpark" },
     ]},
@@ -71,17 +138,83 @@ export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
     ]},
     { id: "price", i18nKey: "filter.price", type: "range", min: 0, max: 10000 },
     { id: "rating", i18nKey: "filter.rating", type: "rating" },
+    // ── Фильтры отеля ──
+    { id: "stars", i18nKey: "filter.tour.stars", type: "checkbox", group: "hotel", options: starsOptions },
+    { id: "view", i18nKey: "filter.hotel.view", type: "checkbox", group: "hotel", options: viewOptions },
+    { id: "smoking", i18nKey: "filter.hotel.smoking", type: "checkbox", group: "hotel", options: smokingOptions },
+    { id: "balcony", i18nKey: "filter.hotel.balcony", type: "checkbox", group: "hotel", options: balconyOptions },
+    { id: "bathroom", i18nKey: "filter.hotel.bathroom", type: "checkbox", group: "hotel", options: bathroomOptions },
+    { id: "area", i18nKey: "filter.hotel.area", type: "checkbox", group: "hotel", options: areaOptions },
+    { id: "occupancy", i18nKey: "filter.hotel.occupancy", type: "checkbox", group: "hotel", options: occupancyOptions },
+    { id: "amenities", i18nKey: "filter.hotel.amenities", type: "checkbox", group: "hotel", options: [
+      { label: "filter.hotel.pool", value: "pool" },
+      { label: "filter.hotel.spa", value: "spa" },
+      { label: "filter.hotel.wifi", value: "wifi" },
+      { label: "filter.hotel.parking", value: "parking" },
+      { label: "filter.hotel.gym", value: "gym" },
+      { label: "filter.hotel.beach", value: "beach" },
+      { label: "filter.hotel.waterpark", value: "waterpark" },
+      { label: "filter.hotel.kidsClub", value: "kids_club" },
+    ]},
+    { id: "roomAmenities", i18nKey: "filter.hotel.roomAmenities", type: "checkbox", group: "hotel", options: [
+      { label: "filter.hotel.wifiRoom", value: "wifi" },
+      { label: "filter.hotel.aircon", value: "aircon" },
+      { label: "filter.hotel.minibar", value: "minibar" },
+      { label: "filter.hotel.safe", value: "safe" },
+      { label: "filter.hotel.tv", value: "tv" },
+      { label: "filter.hotel.coffee", value: "coffee" },
+      { label: "filter.hotel.kettle", value: "kettle" },
+      { label: "filter.hotel.desk", value: "desk" },
+      { label: "filter.hotel.kitchen", value: "kitchen" },
+      { label: "filter.hotel.fridge", value: "fridge" },
+      { label: "filter.hotel.microwave", value: "microwave" },
+      { label: "filter.hotel.washer", value: "washer" },
+      { label: "filter.hotel.hairdryer", value: "hairdryer" },
+      { label: "filter.hotel.bathrobes", value: "bathrobes" },
+      { label: "filter.hotel.slippers", value: "slippers" },
+      { label: "filter.hotel.iron", value: "iron" },
+    ]},
+    { id: "distanceToSea", i18nKey: "filter.hotel.distanceToSea", type: "radio", group: "hotel", options: [
+      { label: "filter.hotel.onBeach", value: "0" },
+      { label: "filter.hotel.within100m", value: "100" },
+      { label: "filter.hotel.within500m", value: "500" },
+      { label: "filter.hotel.within1km", value: "1000" },
+    ]},
+    { id: "petsAllowed", i18nKey: "filter.hotel.petsAllowed", type: "checkbox", group: "hotel", options: [
+      { label: "filter.hotel.petsAllowed", value: "pets" },
+    ]},
+    // ── Фильтры авиарейса ──
+    { id: "stops", i18nKey: "filter.flight.stops", type: "radio", group: "flight", options: [
+      { label: "filter.flight.direct", value: "0" },
+      { label: "filter.flight.oneStop", value: "1" },
+      { label: "filter.flight.twoPlus", value: "2+" },
+    ]},
+    { id: "airline", i18nKey: "filter.flight.airline", type: "checkbox", group: "flight", options: [
+      { label: "filter.flight.airlines.azal", value: "azal" },
+      { label: "filter.flight.airlines.turkish", value: "turkish" },
+      { label: "filter.flight.airlines.flydubai", value: "flydubai" },
+      { label: "filter.flight.airlines.s7", value: "s7" },
+      { label: "filter.flight.airlines.qatar", value: "qatar" },
+    ]},
+    { id: "departureTime", i18nKey: "filter.flight.departureTime", type: "checkbox", group: "flight", options: [
+      { label: "filter.flight.morning", value: "morning" },
+      { label: "filter.flight.afternoon", value: "afternoon" },
+      { label: "filter.flight.evening", value: "evening" },
+      { label: "filter.flight.night", value: "night" },
+    ]},
+    { id: "baggage", i18nKey: "filter.flight.baggage", type: "radio", group: "flight", options: [
+      { label: "filter.flight.cabinOnly", value: "cabin" },
+      { label: "filter.flight.checked", value: "checked" },
+    ]},
   ],
-  // Отели: Страна, Город, Звёзды, Питание, Тип номера, SPA, Бассейн, Wi-Fi, Парковка, Пляж, Расстояние, Рейтинг, С животными, Бесплатная отмена
+  // Отели: Страна, Город, Звёзды, Питание, Тип номера, Тип кроватей, Вид из окна, Курение, Балкон, Санузел, Площадь, Вместимость, Удобства, Рейтинг, Цена
   hotel: [
     { id: "country", i18nKey: "filter.country", type: "country" },
     { id: "city", i18nKey: "filter.city", type: "city" },
-    { id: "stars", i18nKey: "filter.hotel.stars", type: "checkbox", options: [
-      { label: "★★★★★", value: "5" },
-      { label: "★★★★", value: "4" },
-      { label: "★★★", value: "3" },
-      { label: "★★", value: "2" },
-    ]},
+    { id: "startDate", i18nKey: "filter.startDate.hotel", type: "date" },
+    { id: "stars", i18nKey: "filter.hotel.stars", type: "checkbox", options: starsOptions },
+    { id: "roomType", i18nKey: "filter.hotel.roomType", type: "checkbox", options: roomTypeOptions },
+    { id: "bedType", i18nKey: "filter.hotel.bedType", type: "checkbox", options: bedTypeOptions },
     { id: "meal", i18nKey: "filter.hotel.meal", type: "checkbox", options: [
       { label: "filter.tour.noMeals", value: "none" },
       { label: "filter.tour.breakfast", value: "breakfast" },
@@ -89,12 +222,12 @@ export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
       { label: "filter.tour.fullBoard", value: "full" },
       { label: "filter.tour.allInclusive", value: "all_inclusive" },
     ]},
-    { id: "roomType", i18nKey: "filter.hotel.roomType", type: "checkbox", options: [
-      { label: "filter.hotel.standard", value: "standard" },
-      { label: "filter.hotel.deluxe", value: "deluxe" },
-      { label: "filter.hotel.suite", value: "suite" },
-      { label: "filter.hotel.family", value: "family" },
-    ]},
+    { id: "view", i18nKey: "filter.hotel.view", type: "checkbox", options: viewOptions },
+    { id: "smoking", i18nKey: "filter.hotel.smoking", type: "checkbox", options: smokingOptions },
+    { id: "balcony", i18nKey: "filter.hotel.balcony", type: "checkbox", options: balconyOptions },
+    { id: "bathroom", i18nKey: "filter.hotel.bathroom", type: "checkbox", options: bathroomOptions },
+    { id: "area", i18nKey: "filter.hotel.area", type: "checkbox", options: areaOptions },
+    { id: "occupancy", i18nKey: "filter.hotel.occupancy", type: "checkbox", options: occupancyOptions },
     { id: "amenities", i18nKey: "filter.hotel.amenities", type: "checkbox", options: [
       { label: "filter.hotel.pool", value: "pool" },
       { label: "filter.hotel.spa", value: "spa" },
@@ -104,6 +237,24 @@ export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
       { label: "filter.hotel.beach", value: "beach" },
       { label: "filter.hotel.waterpark", value: "waterpark" },
       { label: "filter.hotel.kidsClub", value: "kids_club" },
+    ]},
+    { id: "roomAmenities", i18nKey: "filter.hotel.roomAmenities", type: "checkbox", options: [
+      { label: "filter.hotel.wifiRoom", value: "wifi" },
+      { label: "filter.hotel.aircon", value: "aircon" },
+      { label: "filter.hotel.minibar", value: "minibar" },
+      { label: "filter.hotel.safe", value: "safe" },
+      { label: "filter.hotel.tv", value: "tv" },
+      { label: "filter.hotel.coffee", value: "coffee" },
+      { label: "filter.hotel.kettle", value: "kettle" },
+      { label: "filter.hotel.desk", value: "desk" },
+      { label: "filter.hotel.kitchen", value: "kitchen" },
+      { label: "filter.hotel.fridge", value: "fridge" },
+      { label: "filter.hotel.microwave", value: "microwave" },
+      { label: "filter.hotel.washer", value: "washer" },
+      { label: "filter.hotel.hairdryer", value: "hairdryer" },
+      { label: "filter.hotel.bathrobes", value: "bathrobes" },
+      { label: "filter.hotel.slippers", value: "slippers" },
+      { label: "filter.hotel.iron", value: "iron" },
     ]},
     { id: "distanceToSea", i18nKey: "filter.hotel.distanceToSea", type: "radio", options: [
       { label: "filter.hotel.onBeach", value: "0" },
@@ -124,11 +275,8 @@ export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
   sanatorium: [
     { id: "country", i18nKey: "filter.country", type: "country" },
     { id: "city", i18nKey: "filter.city", type: "city" },
-    { id: "stars", i18nKey: "filter.sanatorium.stars", type: "checkbox", options: [
-      { label: "★★★★★", value: "5" },
-      { label: "★★★★", value: "4" },
-      { label: "★★★", value: "3" },
-    ]},
+    { id: "startDate", i18nKey: "filter.startDate.sanatorium", type: "date" },
+    { id: "stars", i18nKey: "filter.sanatorium.stars", type: "checkbox", options: starsOptions },
     { id: "treatment", i18nKey: "filter.sanatorium.treatment", type: "checkbox", options: [
       { label: "filter.sanatorium.mineralWater", value: "mineral_water" },
       { label: "filter.sanatorium.mudTherapy", value: "mud_therapy" },
@@ -162,6 +310,7 @@ export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
   excursion: [
     { id: "country", i18nKey: "filter.country", type: "country" },
     { id: "city", i18nKey: "filter.city", type: "city" },
+    { id: "startDate", i18nKey: "filter.startDate.excursion", type: "date" },
     { id: "category", i18nKey: "filter.excursion.category", type: "checkbox", options: [
       { label: "filter.excursion.sightseeing", value: "sightseeing" },
       { label: "filter.excursion.adventure", value: "adventure" },
@@ -177,11 +326,11 @@ export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
       { label: "filter.excursion.multiDay", value: "multi" },
     ]},
     { id: "language", i18nKey: "filter.excursion.language", type: "checkbox", options: [
-      { label: "Ru", value: "ru" },
-      { label: "En", value: "en" },
-      { label: "Az", value: "az" },
-      { label: "Tr", value: "tr" },
-      { label: "Ar", value: "ar" },
+      { label: "filter.language.ru", value: "ru" },
+      { label: "filter.language.en", value: "en" },
+      { label: "filter.language.az", value: "az" },
+      { label: "filter.language.tr", value: "tr" },
+      { label: "filter.language.ar", value: "ar" },
     ]},
     { id: "excursionType", i18nKey: "filter.excursion.type", type: "radio", options: [
       { label: "filter.excursion.group", value: "group" },
@@ -205,13 +354,14 @@ export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
   guide: [
     { id: "country", i18nKey: "filter.country", type: "country" },
     { id: "city", i18nKey: "filter.city", type: "city" },
+    { id: "startDate", i18nKey: "filter.startDate.guide", type: "date" },
     { id: "language", i18nKey: "filter.guide.language", type: "checkbox", options: [
-      { label: "Ru", value: "ru" },
-      { label: "En", value: "en" },
-      { label: "Az", value: "az" },
-      { label: "Tr", value: "tr" },
-      { label: "De", value: "de" },
-      { label: "Fr", value: "fr" },
+      { label: "filter.language.ru", value: "ru" },
+      { label: "filter.language.en", value: "en" },
+      { label: "filter.language.az", value: "az" },
+      { label: "filter.language.tr", value: "tr" },
+      { label: "filter.language.de", value: "de" },
+      { label: "filter.language.fr", value: "fr" },
     ]},
     { id: "experience", i18nKey: "filter.guide.experience", type: "radio", options: [
       { label: "filter.guide.upTo1year", value: "1" },
@@ -241,10 +391,11 @@ export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
   photographer: [
     { id: "country", i18nKey: "filter.country", type: "country" },
     { id: "city", i18nKey: "filter.city", type: "city" },
+    { id: "startDate", i18nKey: "filter.startDate.photographer", type: "date" },
     { id: "language", i18nKey: "filter.photographer.language", type: "checkbox", options: [
-      { label: "Ru", value: "ru" },
-      { label: "En", value: "en" },
-      { label: "Az", value: "az" },
+      { label: "filter.language.ru", value: "ru" },
+      { label: "filter.language.en", value: "en" },
+      { label: "filter.language.az", value: "az" },
     ]},
     { id: "experience", i18nKey: "filter.photographer.experience", type: "radio", options: [
       { label: "filter.guide.upTo1year", value: "1" },
@@ -267,17 +418,18 @@ export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
   ],
   // Авиабилеты
   flight: [
+    { id: "startDate", i18nKey: "filter.flight.departureDate", type: "date" },
     { id: "stops", i18nKey: "filter.flight.stops", type: "radio", options: [
       { label: "filter.flight.direct", value: "0" },
       { label: "filter.flight.oneStop", value: "1" },
       { label: "filter.flight.twoPlus", value: "2+" },
     ]},
     { id: "airline", i18nKey: "filter.flight.airline", type: "checkbox", options: [
-      { label: "AZAL", value: "azal" },
-      { label: "Turkish Airlines", value: "turkish" },
-      { label: "FlyDubai", value: "flydubai" },
-      { label: "S7", value: "s7" },
-      { label: "Qatar Airways", value: "qatar" },
+      { label: "filter.flight.airlines.azal", value: "azal" },
+      { label: "filter.flight.airlines.turkish", value: "turkish" },
+      { label: "filter.flight.airlines.flydubai", value: "flydubai" },
+      { label: "filter.flight.airlines.s7", value: "s7" },
+      { label: "filter.flight.airlines.qatar", value: "qatar" },
     ]},
     { id: "departureTime", i18nKey: "filter.flight.departureTime", type: "checkbox", options: [
       { label: "filter.flight.morning", value: "morning" },
@@ -296,6 +448,7 @@ export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
   ],
   // ЖД билеты
   train: [
+    { id: "startDate", i18nKey: "filter.train.departureDate", type: "date" },
     { id: "wagonType", i18nKey: "filter.train.wagonType", type: "checkbox", options: [
       { label: "filter.train.platzkart", value: "platzkart" },
       { label: "filter.train.kupe", value: "kupe" },
@@ -309,9 +462,9 @@ export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
       { label: "filter.flight.night", value: "night" },
     ]},
     { id: "carrier", i18nKey: "filter.train.carrier", type: "checkbox", options: [
-      { label: "ADY", value: "ady" },
-      { label: "RZD", value: "rzd" },
-      { label: "TCDD", value: "tcdd" },
+      { label: "filter.train.carriers.ady", value: "ady" },
+      { label: "filter.train.carriers.rzd", value: "rzd" },
+      { label: "filter.train.carriers.tcdd", value: "tcdd" },
     ]},
     { id: "price", i18nKey: "filter.price", type: "range", min: 0, max: 1000 },
   ],
@@ -319,6 +472,7 @@ export const filterConfigs: Record<ServiceCategory, FilterDefinition[]> = {
   transfer: [
     { id: "country", i18nKey: "filter.country", type: "country" },
     { id: "city", i18nKey: "filter.city", type: "city" },
+    { id: "startDate", i18nKey: "filter.startDate.transfer", type: "date" },
     { id: "carClass", i18nKey: "filter.transfer.carClass", type: "radio", options: [
       { label: "filter.transfer.economy", value: "economy" },
       { label: "filter.transfer.comfort", value: "comfort" },

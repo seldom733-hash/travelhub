@@ -103,6 +103,7 @@ model Service {
   isFeatured    Boolean     @default(false)
   isHot         Boolean     @default(false)
   hotDiscount   Int?
+  freeCancellation Boolean  @default(false)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -234,7 +235,7 @@ guestsAdults   Int      @default(2)             // Количество взро
 // Типы номеров для отелей/санаториев
 model RoomType {
   id          String  @id @default(cuid())
-  name        String                           // Название: Standard, Deluxe, Suite, Family
+  name        String                           // Название: Standard Room, Deluxe Room, Suite
   slug        String                           // standard, deluxe, suite, family
   description String?                          // Описание типа номера
   maxAdults   Int     @default(2)              // Макс. взрослых
@@ -242,9 +243,20 @@ model RoomType {
   basePrice   Decimal                          // Базовая цена за ночь
   currency    String   @default("AZN")
   images      String   @default("")            // Фото номера (через запятую)
-  amenities   String   @default("")            // Удобства номера (Wi-Fi, балкон, вид)
+  amenities   String   @default("")            // Удобства номера (Wi-Fi, кондиционер и т.д.)
   sortOrder   Int      @default(0)             // Порядок отображения
   isActive    Boolean  @default(true)
+
+  // ── Новые поля для гибкой фильтрации ──
+  bedType     String?                          // Тип кроватей: single, twin, double, queen, king, sofa, bunk, baby_cot
+  view        String?                          // Вид из окна: city, sea, pool, garden, mountain, panoramic
+  smoking     String?                          // Курение: non_smoking, smoking
+  balcony     String?                          // Балкон: none, balcony, french_balcony, terrace, private_garden
+  bathroom    String?                          // Санузел: shower, bathtub, jacuzzi, private_pool, shared
+  area        String?                          // Площадь: under_20, 20_30, 30_50, over_50
+  occupancy   String?                          // Тип размещения: sgl, dbl, twn, tpl, qdpl, family
+  roomCount   Int?                             // Количество таких номеров в отеле
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
