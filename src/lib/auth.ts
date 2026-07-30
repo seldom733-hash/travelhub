@@ -1,14 +1,16 @@
 import { hash, compare } from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 
-const rawSecret = process.env.JWT_SECRET;
-if (!rawSecret) {
-  throw new Error(
-    "[Auth] JWT_SECRET env variable is required. " +
-    "Set it in .env — see .env.example for details."
-  );
+function getJWTSecret(): Uint8Array {
+  const raw = process.env.JWT_SECRET;
+  if (!raw) {
+    throw new Error(
+      "[Auth] JWT_SECRET env variable is required. " +
+      "Set it in .env — see .env.example for details."
+    );
+  }
+  return new TextEncoder().encode(raw);
 }
-const JWT_SECRET = new TextEncoder().encode(rawSecret);
 
 export const AUTH_COOKIE_OPTIONS = {
   httpOnly: true,
@@ -31,12 +33,12 @@ export async function createToken(payload: { userId: string; email: string; role
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
-    .sign(JWT_SECRET);
+    .sign(getJWTSecret());
 }
 
 export async function verifyToken(token: string): Promise<{ userId: string; email: string; role: string } | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, getJWTSecret());
     return payload as { userId: string; email: string; role: string };
   } catch {
     return null;
