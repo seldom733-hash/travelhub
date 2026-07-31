@@ -50,6 +50,9 @@ prisma/dev.db
 prisma/dev.db-shm
 prisma/dev.db-wal
 
+# debug scripts
+scripts/
+
 # misc temp files
 0
 

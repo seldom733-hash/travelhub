@@ -185,6 +185,9 @@ function AdminDashboardInner() {
   const [usersStatusFilter, setUsersStatusFilter] = useState("ALL");
   const [usersLoading, setUsersLoading] = useState(false);
   const [userActionLoading, setUserActionLoading] = useState<string | null>(null);
+  const [usersPage, setUsersPage] = useState(1);
+  const [usersTotalPages, setUsersTotalPages] = useState(1);
+  const [usersTotal, setUsersTotal] = useState(0);
 
   // Audit log state
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
@@ -312,25 +315,30 @@ function AdminDashboardInner() {
     }
   }, [user, isModerator, fetchBasicData, fetchData]);
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async (page = usersPage) => {
     setUsersLoading(true);
     try {
       const params = new URLSearchParams();
       if (usersSearch) params.set("search", usersSearch);
       if (usersRoleFilter !== "ALL") params.set("role", usersRoleFilter);
       if (usersStatusFilter !== "ALL") params.set("status", usersStatusFilter);
-      params.set("limit", "50");
+      params.set("page", String(page));
+      params.set("limit", "20");
       const res = await fetch(`/api/admin/users?${params}`, { credentials: "include" });
       if (res.ok) {
         const d = await res.json();
         setUsersList(d.users || []);
+        if (d.pagination) {
+          setUsersTotalPages(d.pagination.totalPages || 1);
+          setUsersTotal(d.pagination.total || 0);
+        }
       }
     } catch (e) {
       console.error("Users fetch error:", e);
     } finally {
       setUsersLoading(false);
     }
-  }, [usersSearch, usersRoleFilter, usersStatusFilter]);
+  }, [usersSearch, usersRoleFilter, usersStatusFilter, usersPage]);
 
   const handleUserAction = useCallback(async (userId: string, action: string, reason?: string, newRole?: string) => {
     setUserActionLoading(userId);
@@ -383,7 +391,7 @@ function AdminDashboardInner() {
     if (activeTab === "moderation") {
       fetchModeration(moderationFilter, moderationPage);
     } else if (activeTab === "users_mgmt") {
-      fetchUsers();
+      fetchUsers(usersPage);
     } else if (activeTab === "audit") {
       fetchAuditLogs(auditPage);
     }
@@ -1322,14 +1330,13 @@ function AdminDashboardInner() {
                         type="text"
                         value={usersSearch}
                         onChange={(e) => setUsersSearch(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && fetchUsers()}
+                        onKeyDown={(e) => e.key === "Enter" && fetchUsers(1)}
                         placeholder="🔍 Поиск по имени или email..."
                         className="w-full h-10 pl-4 pr-4 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none text-sm"
                       />
                     </div>
                     <select
-                      value={usersRoleFilter}
-                      onChange={(e) => setUsersRoleFilter(e.target.value)}
+                      value={usersRoleFilter}                        onChange={(e) => { setUsersRoleFilter(e.target.value); setUsersPage(1); }}
                       className="h-10 px-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none text-sm"
                     >
                       <option value="ALL">Все роли</option>
@@ -1339,8 +1346,7 @@ function AdminDashboardInner() {
                       <option value="ADMIN">Админы</option>
                     </select>
                     <select
-                      value={usersStatusFilter}
-                      onChange={(e) => setUsersStatusFilter(e.target.value)}
+                      value={usersStatusFilter}                        onChange={(e) => { setUsersStatusFilter(e.target.value); setUsersPage(1); }}
                       className="h-10 px-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none text-sm"
                     >
                       <option value="ALL">Все статусы</option>
@@ -1348,7 +1354,7 @@ function AdminDashboardInner() {
                       <option value="banned">Забаненные</option>
                     </select>
                     <button
-                      onClick={fetchUsers}
+                      onClick={() => fetchUsers()}
                       className="h-10 px-4 bg-primary text-white rounded-xl text-sm hover:bg-primary-dark transition-colors"
                     >
                       🔄 Обновить
@@ -1457,6 +1463,49 @@ function AdminDashboardInner() {
                         </tbody>
                       </table>
                     </div>
+
+                    {/* Users Pagination */}
+                    {usersTotalPages > 1 && (
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <span className="text-xs text-gray-500">
+                          Всего: {usersTotal} • Стр. {usersPage} из {usersTotalPages}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => { setUsersPage(p => Math.max(1, p - 1)); }}
+                            disabled={usersPage <= 1}
+                            className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            ← Назад
+                          </button>
+                          {Array.from({ length: Math.min(5, usersTotalPages) }, (_, i) => {
+                            const start = Math.max(1, Math.min(usersPage - 2, usersTotalPages - 4));
+                            const pageNum = start + i;
+                            if (pageNum > usersTotalPages) return null;
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => setUsersPage(pageNum)}
+                                className={`w-8 h-8 text-xs font-medium rounded-lg transition-colors ${
+                                  usersPage === pageNum
+                                    ? "bg-primary text-white"
+                                    : "text-gray-600 hover:bg-gray-100"
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                          <button
+                            onClick={() => { setUsersPage(p => Math.min(usersTotalPages, p + 1)); }}
+                            disabled={usersPage >= usersTotalPages}
+                            className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            Далее →
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </Card>
                 )}
               </>
