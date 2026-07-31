@@ -1164,10 +1164,11 @@ function AdminDashboardInner() {
                       className="h-10 px-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none text-sm"
                     >
                       <option value="ALL">{t("adminDashboard.audit.actionAll")}</option>
-                      <option value="approve_service">Одобрение услуги</option>
-                      <option value="reject_service">Отклонение услуги</option><option value="ban_user">{t("adminDashboard.usersMgmt.ban")}</option>
-                       <option value="unban_user">{t("adminDashboard.usersMgmt.unban")}</option>
-                      <option value="change_role">Смена роли</option>
+                      <option value="approve_service">{t("adminDashboard.audit.actionApproveService")}</option>
+                      <option value="reject_service">{t("adminDashboard.audit.actionRejectService")}</option>
+                      <option value="ban_user">{t("adminDashboard.audit.actionBanUser")}</option>
+                      <option value="unban_user">{t("adminDashboard.audit.actionUnbanUser")}</option>
+                      <option value="change_role">{t("adminDashboard.audit.actionChangeRole")}</option>
                     </select>
                     <select
                       value={auditTargetFilter}
@@ -1227,11 +1228,11 @@ function AdminDashboardInner() {
                                   log.action.includes("ban") ? "bg-orange-100 text-orange-700" :
                                   log.action.includes("unban") ? "bg-blue-100 text-blue-700" :
                                   "bg-gray-100 text-gray-700"
-                                }`}>                                   {log.action === "approve_service" ? "✅ Одобрение" :
-                                    log.action === "reject_service" ? "❌ Отклонение" :
-                                    log.action === "ban_user" ? t("adminDashboard.usersMgmt.ban") :
-                                    log.action === "unban_user" ? t("adminDashboard.usersMgmt.unban") :
-                                    log.action === "change_role" ? "🔄 Смена роли" :
+                                }`}>{log.action === "approve_service" ? t("adminDashboard.audit.labelApprove") :
+                                     log.action === "reject_service" ? t("adminDashboard.audit.labelReject") :
+                                     log.action === "ban_user" ? t("adminDashboard.audit.labelBan") :
+                                     log.action === "unban_user" ? t("adminDashboard.audit.labelUnban") :
+                                     log.action === "change_role" ? t("adminDashboard.audit.labelChangeRole") :
                                     log.action}
                                 </span>
                               </td>
@@ -1419,11 +1420,10 @@ function AdminDashboardInner() {
                                     <button
                                       onClick={() => handleUserAction(user.id, "unban")}
                                       disabled={userActionLoading === user.id}
-                                      className="px-2 py-1 text-xs bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50"
-                                      title="Разбанить"
-                                    >
-                                      ✅ Разбан
-                                    </button>
+                                      className="px-2 py-1 text-xs bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50"                                      title={t("adminDashboard.usersMgmt.unban")}
+                                     >
+                                       {t("adminDashboard.usersMgmt.unban")}
+                                     </button>
                                   )}
                                   <select
                                     value={user.role}
@@ -1540,7 +1540,7 @@ function AdminDashboardInner() {
       {roleModalUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]" onClick={() => setRoleModalUser(null)}>
           <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-secondary mb-2">🔄 Смена роли</h3>
+            <h3 className="text-lg font-bold text-secondary mb-2">{t("adminDashboard.usersMgmt.roleModalTitle")}</h3>
             <p className="text-sm text-gray-500 mb-4">
               {roleModalUser.firstName} {roleModalUser.lastName} ({roleModalUser.email})
             </p>

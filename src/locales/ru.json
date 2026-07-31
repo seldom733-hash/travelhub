@@ -1697,7 +1697,17 @@
       "tableAction": "Действие",
       "tableTarget": "Объект",
       "tableDetails": "Детали",
-      "noData": "Нет данных"
+      "noData": "Нет данных",
+      "actionApproveService": "Одобрение услуги",
+      "actionRejectService": "Отклонение услуги",
+      "actionBanUser": "Бан пользователя",
+      "actionUnbanUser": "Разбан пользователя",
+      "actionChangeRole": "Смена роли",
+      "labelApprove": "✅ Одобрение",
+      "labelReject": "❌ Отклонение",
+      "labelBan": "🔇 Бан",
+      "labelUnban": "🔊 Разбан",
+      "labelChangeRole": "🔄 Смена роли"
     },
     "typeLabels": {
       "TOUR": "🚗 Туры",

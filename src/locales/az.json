@@ -1675,7 +1675,17 @@
       "tableAction": "Əməliyyat",
       "tableTarget": "Objevt",
       "tableDetails": "Detallar",
-      "noData": "Məlumat yoxdur"
+      "noData": "Məlumat yoxdur",
+      "actionApproveService": "Xidməti təsdiqlə",
+      "actionRejectService": "Xidməti rədd et",
+      "actionBanUser": "İstifadəçini blokla",
+      "actionUnbanUser": "İstifadəçini blokdan çıxar",
+      "actionChangeRole": "Rol dəyişdir",
+      "labelApprove": "✅ Təsdiqlənib",
+      "labelReject": "❌ Rədd edilib",
+      "labelBan": "🔇 Blok",
+      "labelUnban": "🔊 Blokdan çıxar",
+      "labelChangeRole": "🔄 Rol dəyişikliyi"
     },
     "typeLabels": {
       "TOUR": "🚗 Turlar",

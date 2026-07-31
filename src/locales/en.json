@@ -1695,7 +1695,17 @@
       "tableAction": "Action",
       "tableTarget": "Target",
       "tableDetails": "Details",
-      "noData": "No data"
+      "noData": "No data",
+      "actionApproveService": "Approve service",
+      "actionRejectService": "Reject service",
+      "actionBanUser": "Ban user",
+      "actionUnbanUser": "Unban user",
+      "actionChangeRole": "Change role",
+      "labelApprove": "✅ Approved",
+      "labelReject": "❌ Rejected",
+      "labelBan": "🔇 Ban",
+      "labelUnban": "🔊 Unban",
+      "labelChangeRole": "🔄 Role change"
     },
     "typeLabels": {
       "TOUR": "🚗 Tours",
