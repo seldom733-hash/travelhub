@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useI18n } from "@/lib/i18n-context";
 
@@ -150,20 +150,37 @@ function AdminDashboardInner() {
   const [data, setData] = useState<ExtendedAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAutoRefresh, setIsAutoRefresh] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (isBackground = false) => {
     try {
+      if (isBackground) setIsRefreshing(true);
       const res = await fetch("/api/admin/analytics/extended?section=all", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load analytics");
       setData(await res.json());
+      setLastUpdated(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     } finally {
       setIsLoading(false);
+      if (isBackground) setIsRefreshing(false);
     }
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Auto-refresh polling
+  useEffect(() => {
+    if (isAutoRefresh) {
+      intervalRef.current = setInterval(() => fetchData(true), 30000);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isAutoRefresh, fetchData]);
 
   /* ── Loading ── */
   if (isLoading) {
@@ -223,6 +240,29 @@ function AdminDashboardInner() {
             <div className="flex-1">
               <h1 className="text-2xl font-bold">Admin Dashboard — Полная аналитика</h1>
               <p className="text-white/70">TravelHUB Travel Holiday Unified Booking Platform</p>
+              {lastUpdated && (
+                <div className="flex items-center gap-3 mt-2">
+                  <div className="flex items-center gap-1.5 text-xs text-white/50">
+                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${isRefreshing ? "bg-green-400 animate-pulse" : "bg-green-400"}`} />
+                    {isRefreshing ? "Обновление..." : `Обновлено: ${lastUpdated.toLocaleTimeString("ru-RU")}`}
+                  </div>
+                  <button
+                    onClick={() => setIsAutoRefresh(!isAutoRefresh)}
+                    className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full transition-all ${isAutoRefresh ? "bg-green-500/20 text-green-300 hover:bg-green-500/30" : "bg-white/10 text-white/50 hover:bg-white/20"}`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${isAutoRefresh ? "bg-green-400 animate-pulse" : "bg-gray-400"}`} />
+                    {isAutoRefresh ? "Авто-обновление: ВКЛ" : "Авто-обновление: ВЫКЛ"}
+                  </button>
+                  {!isAutoRefresh && (
+                    <button
+                      onClick={() => fetchData(true)}
+                      className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-all"
+                    >
+                      🔄 Обновить
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
