@@ -684,6 +684,136 @@ async function main() {
   await prisma.booking.createMany({ data: bookingData });
   console.log(`🛒 Created ${bookingData.length} bookings`);
 
+  // ==================== ANALYTICS SEED DATA ====================
+  console.log("📊 Seeding analytics data (page_views, search_queries, funnel_events)...");
+
+  // --- PAGE VIEWS (last 30 days, ~3000 records) ---
+  const devices = ["desktop", "mobile", "tablet"];
+  const browsers = ["Chrome", "Safari", "Firefox", "Edge"];
+  const paths = ["/", "/tours", "/hotels", "/excursions", "/sanatoriums", "/transfers", "/guides", "/photographers", "/flights", "/trains", "/blog", "/chat"];
+  const servicePaths = createdServices.slice(0, 100).map(s => ({ path: `/services/${s.id}`, id: s.id, type: s.type }));
+  const sessionIds = Array.from({ length: 200 }, (_, i) => `sess_${i}_${randInt(10000, 99999)}`);
+  const userAgents = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) AppleWebKit/605.1.15 Safari/605.1.15",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0",
+    "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/120.0",
+    "Mozilla/5.0 (iPad; CPU OS 17_0) AppleWebKit/605.1.15 Safari/605.1.15",
+  ];
+  const referrers = ["https://google.com", "https://instagram.com", "https://t.me/", "", "", "", "https://facebook.com"];
+  const viewData: Array<{ path: string; serviceId: string | null; serviceType: string | null; userId: string | null; sessionId: string; ipAddress: string; userAgent: string; referrer: string; device: string; duration: number | null; createdAt: Date }> = [];
+
+  for (let d = 29; d >= 0; d--) {
+    const day = new Date(); day.setDate(day.getDate() - d); day.setHours(0, 0, 0, 0);
+    const viewsPerDay = randInt(60, 150); // 60-150 views per day
+    for (let v = 0; v < viewsPerDay; v++) {
+      const hour = randInt(6, 23);
+      const minute = randInt(0, 59);
+      const createdAt = new Date(day); createdAt.setHours(hour, minute, randInt(0, 59));
+      const useService = Math.random() > 0.4;
+      const sv = useService ? pick(servicePaths) : null;
+      const path_ = sv ? sv.path : pick(paths);
+      const userId = Math.random() > 0.4 ? pick(buyers).id : null;
+      const device = pick(devices);
+      viewData.push({
+        path: path_,
+        serviceId: sv?.id || null,
+        serviceType: sv?.type || null,
+        userId,
+        sessionId: pick(sessionIds),
+        ipAddress: `${randInt(10, 223)}.${randInt(0, 255)}.${randInt(0, 255)}.${randInt(1, 254)}`,
+        userAgent: pick(userAgents),
+        referrer: pick(referrers),
+        device,
+        duration: randInt(3, 300),
+        createdAt,
+      });
+    }
+  }
+  for (let i = 0; i < viewData.length; i += BATCH) {
+    await prisma.pageView.createMany({ data: viewData.slice(i, i + BATCH) });
+  }
+  console.log(`👁  Created ${viewData.length} page views`);
+
+  // --- SEARCH QUERIES (last 30 days, ~800 records) ---
+  const searchTerms = [
+    "Анталья отель", "отель с бассейном", "Турция туры", "Дубай отель", "Каппадокия экскурсия",
+    "Санаторий Памуккале", "Крит отель", "Мальдивы", "Бали отель", "Грузия тур",
+    "семейный отель", "все включено", "5 звезд", "дешёвые туры", "горящие туры",
+    "трансфер аэропорт", "гид Стамбул", "фотограф Рим", "экскурсия Каир", "поезд Москва",
+    "Шарм-эль-Шейх", "Бодрум отель", "Санторини", "Флоренция", "Барселона",
+    "Тбилиси гид", "Батуми отель", "Хургада отель", "Пхукет", "Чиангмай",
+    "Пунта-Кана", "Доминикана отель", "Марракеш экскурсия", "Вьетнам тур", "Израиль тур",
+    "Сочи отель", "Калининград", "Будва отель", "Котор экскурсия", "Родос отель",
+  ];
+  const emptySearchTerms = [
+    "Италия 15 августа", "Барселона с собакой", "Круиз вокруг света", "Космический тур",
+    "Подводный отель", "Сафари в Европе", "Ледяной отель", "Отель на дереве",
+  ];
+  const searchData: Array<{ query: string; userId: string | null; sessionId: string; serviceType: string | null; resultCount: number; filters: string | null; country: string | null; city: string | null; isAiSearch: boolean; createdAt: Date }> = [];
+
+  for (let d = 29; d >= 0; d--) {
+    const day = new Date(); day.setDate(day.getDate() - d); day.setHours(0, 0, 0, 0);
+    const searchesPerDay = randInt(15, 40);
+    for (let s = 0; s < searchesPerDay; s++) {
+      const createdAt = new Date(day); createdAt.setHours(randInt(6, 23), randInt(0, 59));
+      const isEmpty = Math.random() > 0.85;
+      const query = isEmpty ? pick(emptySearchTerms) : pick(searchTerms);
+      const resultCount = isEmpty ? 0 : randInt(1, 50);
+      searchData.push({
+        query,
+        userId: Math.random() > 0.5 ? pick(buyers).id : null,
+        sessionId: pick(sessionIds),
+        serviceType: Math.random() > 0.5 ? pick(["TOUR", "HOTEL", "EXCURSION", "SANATORIUM", "TRANSFER", "GUIDE", "PHOTOGRAPHER"]) : null,
+        resultCount,
+        filters: Math.random() > 0.5 ? JSON.stringify({ price: [100, 500], rating: pick([3, 4, 4.5]) }) : null,
+        country: Math.random() > 0.6 ? pick(["Турция", "ОАЭ", "Грузия", "Египет", "Греция", "Италия"]) : null,
+        city: Math.random() > 0.7 ? pick(["Анталья", "Стамбул", "Дубай", "Батуми", "Хургада", "Рим"]) : null,
+        isAiSearch: Math.random() > 0.8,
+        createdAt,
+      });
+    }
+  }
+  for (let i = 0; i < searchData.length; i += BATCH) {
+    await prisma.searchQuery.createMany({ data: searchData.slice(i, i + BATCH) });
+  }
+  console.log(`🔍 Created ${searchData.length} search queries`);
+
+  // --- FUNNEL EVENTS (last 30 days, ~600 records) ---
+  const funnelSteps = ["search", "view_card", "select_variant", "checkout", "payment", "booking"] as const;
+  const funnelData: Array<{ event: string; userId: string | null; sessionId: string; serviceId: string | null; serviceType: string | null; metadata: string | null; createdAt: Date }> = [];
+
+  for (let d = 29; d >= 0; d--) {
+    const day = new Date(); day.setDate(day.getDate() - d); day.setHours(0, 0, 0, 0);
+    const sessionsPerDay = randInt(20, 60);
+    for (let s = 0; s < sessionsPerDay; s++) {
+      const session = pick(sessionIds);
+      const user = Math.random() > 0.4 ? pick(buyers) : null;
+      const service = pick(createdServices);
+      const baseTime = new Date(day); baseTime.setHours(randInt(8, 22), randInt(0, 59));
+      // Simulate funnel drop-off: each step has ~40-70% chance to continue
+      let continue_ = true;
+      for (const step of funnelSteps) {
+        if (!continue_) break;
+        const createdAt = new Date(baseTime.getTime() + funnelSteps.indexOf(step) * randInt(30000, 300000));
+        funnelData.push({
+          event: step,
+          userId: user?.id || null,
+          sessionId: session,
+          serviceId: service.id,
+          serviceType: service.type,
+          metadata: step === "booking" ? JSON.stringify({ totalPrice: randInt(100, 2000), currency: "AZN" }) : null,
+          createdAt,
+        });
+        continue_ = Math.random() > 0.4;
+      }
+    }
+  }
+  for (let i = 0; i < funnelData.length; i += BATCH) {
+    await prisma.funnelEvent.createMany({ data: funnelData.slice(i, i + BATCH) });
+  }
+  console.log(`🔽 Created ${funnelData.length} funnel events`);
+
   // ==================== SUMMARY ====================
   console.log("\n✅ Seeding complete!\n");
   console.log("═══════════════════════════════════════════════════════");
