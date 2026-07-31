@@ -1008,7 +1008,8 @@
     },
     "goToFavorites": "Go to favorites →",
     "goToSettings": "Go to settings →",
-    "reviewsEmpty": "Reviews will appear after completing bookings"
+    "reviewsEmpty": "Reviews will appear after completing bookings",
+    "orderDate": "Order from"
   },
   "notFound": {
     "title": "404",
@@ -1397,6 +1398,51 @@
     "myBookings": "My Bookings",
     "sellerReply": "Seller's reply:"
   },
+  "partnerDashboard": {
+    "title": "Partner Dashboard",
+    "addService": "+ Add Service",
+    "sidebar": {
+      "dashboard": "📊 Dashboard",
+      "services": "📦 My Services",
+      "orders": "🛒 Orders",
+      "calendar": "📅 Calendar",
+      "messages": "💬 Messages",
+      "reviews": "⭐ Reviews",
+      "finance": "💰 Finance",
+      "documents": "📄 Documents",
+      "settings": "⚙️ Settings"
+    },
+    "stats": {
+      "orders": "Orders",
+      "income": "Income",
+      "views": "Views",
+      "rating": "Rating",
+      "reviews": "Reviews",
+      "conversion": "Conversion",
+      "perMonth": "per month"
+    },
+    "analytics": {
+      "title": "Revenue Analytics",
+      "last30days": "Last 30 days",
+      "last3months": "Last 3 months",
+      "lastYear": "Last year",
+      "chartPlaceholder": "📈 Revenue chart (Chart.js integration)"
+    },
+    "servicesTab": {
+      "title": "📦 My Services",
+      "add": "+ Add"
+    },
+    "ordersTab": {
+      "title": "Recent Orders",
+      "allOrders": "All orders →",
+      "id": "ID",
+      "client": "Client",
+      "service": "Service",
+      "date": "Date",
+      "status": "Status",
+      "amount": "Amount"
+    }
+  },
   "admin": {
     "title": "Admin Panel",
     "subtitle": "Manage TravelHub platform",
@@ -1412,6 +1458,7 @@
       "services": "Services",
       "orders": "Orders",
       "reviews": "Reviews",
+      "partners": "Partners",
       "finance": "Finance",
       "banners": "Banners",
       "promos": "Promos",

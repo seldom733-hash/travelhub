@@ -7,24 +7,24 @@ import Breadcrumb from "@/components/Breadcrumb";
 import PartnerServiceList from "@/components/PartnerServiceList";
 
 const sidebarItems = [
-  { icon: "📊", label: "Панель управления", id: "dashboard" },
-  { icon: "📦", label: "Мои услуги", id: "services" },
-  { icon: "🛒", label: "Заказы", id: "orders", badge: 12 },
-  { icon: "📅", label: "Календарь", id: "calendar" },
-  { icon: "💬", label: "Сообщения", id: "messages", badge: 3 },
-  { icon: "⭐", label: "Отзывы", id: "reviews" },
-  { icon: "💰", label: "Финансы", id: "finance" },
-  { icon: "📄", label: "Документы", id: "documents" },
-  { icon: "⚙️", label: "Настройки", id: "settings" },
+  { icon: "📊", i18nKey: "partnerDashboard.sidebar.dashboard", id: "dashboard" },
+  { icon: "📦", i18nKey: "partnerDashboard.sidebar.services", id: "services" },
+  { icon: "🛒", i18nKey: "partnerDashboard.sidebar.orders", id: "orders", badge: 12 },
+  { icon: "📅", i18nKey: "partnerDashboard.sidebar.calendar", id: "calendar" },
+  { icon: "💬", i18nKey: "partnerDashboard.sidebar.messages", id: "messages", badge: 3 },
+  { icon: "⭐", i18nKey: "partnerDashboard.sidebar.reviews", id: "reviews" },
+  { icon: "💰", i18nKey: "partnerDashboard.sidebar.finance", id: "finance" },
+  { icon: "📄", i18nKey: "partnerDashboard.sidebar.documents", id: "documents" },
+  { icon: "⚙️", i18nKey: "partnerDashboard.sidebar.settings", id: "settings" },
 ];
 
-const stats = [
-  { icon: "📦", label: "Заказов", value: "156", change: "+12%", color: "bg-primary/10 text-primary" },
-  { icon: "💰", label: "Доход", value: "45 200 AZN", change: "+18%", color: "bg-success/10 text-success" },
-  { icon: "👁", label: "Просмотры", value: "12 450", change: "+25%", color: "bg-blue-100 text-blue-600" },
-  { icon: "⭐", label: "Рейтинг", value: "4.8", change: "+0.1", color: "bg-amber-100 text-amber-600" },
-  { icon: "💬", label: "Отзывы", value: "234", change: "+8%", color: "bg-violet-100 text-violet-600" },
-  { icon: "📈", label: "Конверсия", value: "12.5%", change: "+2.3%", color: "bg-emerald-100 text-emerald-600" },
+const statsConfig = [
+  { icon: "📦", i18nKey: "partnerDashboard.stats.orders", value: "156", change: "+12%", color: "bg-primary/10 text-primary" },
+  { icon: "💰", i18nKey: "partnerDashboard.stats.income", value: "45 200 AZN", change: "+18%", color: "bg-success/10 text-success" },
+  { icon: "👁", i18nKey: "partnerDashboard.stats.views", value: "12 450", change: "+25%", color: "bg-blue-100 text-blue-600" },
+  { icon: "⭐", i18nKey: "partnerDashboard.stats.rating", value: "4.8", change: "+0.1", color: "bg-amber-100 text-amber-600" },
+  { icon: "💬", i18nKey: "partnerDashboard.stats.reviews", value: "234", change: "+8%", color: "bg-violet-100 text-violet-600" },
+  { icon: "📈", i18nKey: "partnerDashboard.stats.conversion", value: "12.5%", change: "+2.3%", color: "bg-emerald-100 text-emerald-600" },
 ];
 
 const recentOrders = [
@@ -34,17 +34,20 @@ const recentOrders = [
   { id: "ORD-1231", customer: "Дмитрий В.", service: "Вечерний Стамбул", date: "19 июл", status: "confirmed", amount: 70 },
 ];
 
-const statusLabels: Record<string, { label: string; color: string }> = {
-  confirmed: { label: "Подтверждено", color: "bg-success/10 text-success" },
-  pending: { label: "Ожидание", color: "bg-amber-100 text-amber-600" },
-  completed: { label: "Завершено", color: "bg-blue-100 text-blue-600" },
-  cancelled: { label: "Отменено", color: "bg-danger/10 text-danger" },
+const statusColorMap: Record<string, string> = {
+  confirmed: "bg-success/10 text-success",
+  pending: "bg-amber-100 text-amber-600",
+  completed: "bg-blue-100 text-blue-600",
+  cancelled: "bg-danger/10 text-danger",
 };
 
 export default function PartnerDashboardPage() {
   const { t } = useI18n();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("dashboard");
+
+  const sidebarItemsTranslated = sidebarItems.map(item => ({ ...item, label: t(item.i18nKey) }));
+  const stats = statsConfig.map(stat => ({ ...stat, label: t(stat.i18nKey) }));
 
   return (
     <div className="min-h-[calc(100vh-120px)] bg-gray-50">
@@ -56,14 +59,14 @@ export default function PartnerDashboardPage() {
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-2xl">🤝</div>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-secondary">Кабинет партнера</h1>
+              <h1 className="text-2xl font-bold text-secondary">{t("partnerDashboard.title")}</h1>
               <p className="text-gray-500">TravelPro Azerbaijan</p>
             </div>
             <button
               onClick={() => router.push("/partner/services/new")}
               className="h-10 px-6 bg-primary hover:bg-primary-dark text-white rounded-xl font-semibold transition-all hover:shadow-lg"
             >
-              + Добавить услугу
+              {t("partnerDashboard.addService")}
             </button>
           </div>
         </div>
@@ -73,7 +76,7 @@ export default function PartnerDashboardPage() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sticky top-24">
               <nav className="space-y-1">
-                {sidebarItems.map((item) => (
+                {sidebarItemsTranslated.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
@@ -118,15 +121,15 @@ export default function PartnerDashboardPage() {
             {activeTab === "dashboard" && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-bold text-secondary">Аналитика дохода</h2>
+                  <h2 className="text-lg font-bold text-secondary">{t("partnerDashboard.analytics.title")}</h2>
                   <select className="text-sm font-medium text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none">
-                    <option>Последние 30 дней</option>
-                    <option>Последние 3 месяца</option>
-                    <option>Последний год</option>
+                    <option>{t("partnerDashboard.analytics.last30days")}</option>
+                    <option>{t("partnerDashboard.analytics.last3months")}</option>
+                    <option>{t("partnerDashboard.analytics.lastYear")}</option>
                   </select>
                 </div>
                 <div className="h-48 bg-gradient-to-r from-primary/5 to-accent/5 rounded-xl flex items-center justify-center text-gray-400">
-                  📈 График дохода (интеграция с Chart.js)
+                  {t("partnerDashboard.analytics.chartPlaceholder")}
                 </div>
               </div>
             )}
@@ -135,12 +138,12 @@ export default function PartnerDashboardPage() {
             {activeTab === "services" && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-bold text-secondary">📦 Мои услуги</h2>
+                  <h2 className="text-lg font-bold text-secondary">{t("partnerDashboard.servicesTab.title")}</h2>
                   <button
                     onClick={() => router.push("/partner/services/new")}
                     className="h-9 px-4 bg-primary hover:bg-primary-dark text-white rounded-lg text-sm font-medium transition-all"
                   >
-                    + Добавить
+                    {t("partnerDashboard.servicesTab.add")}
                   </button>
                 </div>
                 <PartnerServiceList />
@@ -151,9 +154,9 @@ export default function PartnerDashboardPage() {
             {activeTab === "dashboard" && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-bold text-secondary">Последние заказы</h2>
+                  <h2 className="text-lg font-bold text-secondary">{t("partnerDashboard.ordersTab.title")}</h2>
                   <a href="/partner/orders" className="text-sm text-primary font-medium hover:text-primary-dark">
-                    Все заказы →
+                    {t("partnerDashboard.ordersTab.allOrders")}
                   </a>
                 </div>
 
@@ -161,12 +164,12 @@ export default function PartnerDashboardPage() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-100">
-                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">ID</th>
-                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Клиент</th>
-                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Услуга</th>
-                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Дата</th>
-                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Статус</th>
-                        <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">Сумма</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">{t("partnerDashboard.ordersTab.id")}</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">{t("partnerDashboard.ordersTab.client")}</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">{t("partnerDashboard.ordersTab.service")}</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">{t("partnerDashboard.ordersTab.date")}</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">{t("partnerDashboard.ordersTab.status")}</th>
+                        <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3">{t("partnerDashboard.ordersTab.amount")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
@@ -177,8 +180,8 @@ export default function PartnerDashboardPage() {
                           <td className="py-3 text-sm text-gray-600">{order.service}</td>
                           <td className="py-3 text-sm text-gray-500">{order.date}</td>
                           <td className="py-3">
-                            <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusLabels[order.status].color}`}>
-                              {statusLabels[order.status].label}
+                            <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusColorMap[order.status] || "bg-gray-100 text-gray-600"}`}>
+                              {t(`status.${order.status}`)}
                             </span>
                           </td>
                           <td className="py-3 text-sm font-semibold text-secondary text-right">{order.amount} AZN</td>

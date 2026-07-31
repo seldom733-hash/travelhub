@@ -1008,7 +1008,8 @@
     },
     "goToFavorites": "Перейти к избранному →",
     "goToSettings": "Перейти к настройкам →",
-    "reviewsEmpty": "Отзывы появятся после завершения бронирований"
+    "reviewsEmpty": "Отзывы появятся после завершения бронирований",
+    "orderDate": "Заказ от"
   },
   "notFound": {
     "title": "404",
@@ -1397,6 +1398,51 @@
     "myBookings": "Мои бронирования",
     "sellerReply": "Ответ продавца:"
   },
+  "partnerDashboard": {
+    "title": "Кабинет партнёра",
+    "addService": "+ Добавить услугу",
+    "sidebar": {
+      "dashboard": "📊 Панель управления",
+      "services": "📦 Мои услуги",
+      "orders": "🛒 Заказы",
+      "calendar": "📅 Календарь",
+      "messages": "💬 Сообщения",
+      "reviews": "⭐ Отзывы",
+      "finance": "💰 Финансы",
+      "documents": "📄 Документы",
+      "settings": "⚙️ Настройки"
+    },
+    "stats": {
+      "orders": "Заказов",
+      "income": "Доход",
+      "views": "Просмотры",
+      "rating": "Рейтинг",
+      "reviews": "Отзывы",
+      "conversion": "Конверсия",
+      "perMonth": "за месяц"
+    },
+    "analytics": {
+      "title": "Аналитика дохода",
+      "last30days": "Последние 30 дней",
+      "last3months": "Последние 3 месяца",
+      "lastYear": "Последний год",
+      "chartPlaceholder": "📈 График дохода (интеграция с Chart.js)"
+    },
+    "servicesTab": {
+      "title": "📦 Мои услуги",
+      "add": "+ Добавить"
+    },
+    "ordersTab": {
+      "title": "Последние заказы",
+      "allOrders": "Все заказы →",
+      "id": "ID",
+      "client": "Клиент",
+      "service": "Услуга",
+      "date": "Дата",
+      "status": "Статус",
+      "amount": "Сумма"
+    }
+  },
   "admin": {
     "title": "Админ-панель",
     "subtitle": "Управление платформой TravelHub",
@@ -1408,7 +1454,9 @@
       "services": "Услуги",
       "orders": "Заказы",
       "reviews": "Отзывы",
+      "partners": "Партнёры",
       "finance": "Финансы",
+      "settings": "Настройки",
       "banners": "Баннеры",
       "promos": "Акции",
       "settings": "Настройки"

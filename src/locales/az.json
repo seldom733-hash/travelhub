@@ -988,7 +988,8 @@
     },
     "goToFavorites": "Seçilmişlərə keçin →",
     "goToSettings": "Tənzimləmələrə keçin →",
-    "reviewsEmpty": "Rəylər bronlaşma tamamlandıqdan sonra görünəcək"
+    "reviewsEmpty": "Rəylər bronlaşma tamamlandıqdan sonra görünəcək",
+    "orderDate": "Sifariş tarixi"
   },
   "notFound": {
     "title": "404",
@@ -1377,6 +1378,51 @@
     "myBookings": "Bronlaşdırmalarım",
     "sellerReply": "Satıcının cavabı:"
   },
+  "partnerDashboard": {
+    "title": "Tərəfdaş Kabineti",
+    "addService": "+ Xidmət Əlavə Et",
+    "sidebar": {
+      "dashboard": "📊 İdarəetmə Paneli",
+      "services": "📦 Xidmətlərim",
+      "orders": "🛒 Sifarişlər",
+      "calendar": "📅 Təqvim",
+      "messages": "💬 Mesajlar",
+      "reviews": "⭐ Rəylər",
+      "finance": "💰 Maliyyə",
+      "documents": "📄 Sənədlər",
+      "settings": "⚙️ Tənzimləmələr"
+    },
+    "stats": {
+      "orders": "Sifarişlər",
+      "income": "Gəlir",
+      "views": "Baxışlar",
+      "rating": "Reytinq",
+      "reviews": "Rəylər",
+      "conversion": "Konversiya",
+      "perMonth": "aylıq"
+    },
+    "analytics": {
+      "title": "Gəlir Analitikası",
+      "last30days": "Son 30 gün",
+      "last3months": "Son 3 ay",
+      "lastYear": "Son il",
+      "chartPlaceholder": "📈 Gəlir qrafiki (Chart.js inteqrasiyası)"
+    },
+    "servicesTab": {
+      "title": "📦 Xidmətlərim",
+      "add": "+ Əlavə et"
+    },
+    "ordersTab": {
+      "title": "Son Sifarişlər",
+      "allOrders": "Bütün sifarişlər →",
+      "id": "ID",
+      "client": "Müştəri",
+      "service": "Xidmət",
+      "date": "Tarix",
+      "status": "Status",
+      "amount": "Məbləğ"
+    }
+  },
   "admin": {
     "title": "İdarəetmə paneli",
     "subtitle": "TravelHub platformasını idarə edin",
@@ -1392,6 +1438,7 @@
       "services": "Xidmətlər",
       "orders": "Sifarişlər",
       "reviews": "Rəylər",
+      "partners": "Tərəfdaşlar",
       "finance": "Maliyyə",
       "banners": "Bannerlər",
       "promos": "Aksiyalar",
