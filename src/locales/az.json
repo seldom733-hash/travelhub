@@ -1763,7 +1763,13 @@
       "activeKeys": "Aktiv açarlar",
       "avgResponse": "Orta cavab",
       "errors2": "Xətalar"
-    }
+    },
+    "chats": "Söhbətlər",
+    "email": "Email",
+    "folders": "Qovluqlar",
+    "auto": "Avtomatik",
+    "weekly": "Həftəlik",
+    "today": "Bu gün"
   },
   "adminDashboard": {
     "title": "Admin Paneli — Tam Analitika",

@@ -1800,7 +1800,13 @@
       "activeKeys": "Активных ключей",
       "avgResponse": "Среднее время",
       "errors2": "Ошибки"
-    }
+    },
+    "chats": "Чаты",
+    "email": "Email",
+    "folders": "Папки",
+    "auto": "Авто",
+    "weekly": "Еженедельно",
+    "today": "Сегодня"
   },
   "adminDashboard": {
     "title": "Admin Dashboard — Полная аналитика",

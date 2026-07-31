@@ -1060,7 +1060,7 @@ function AdminInner() {
                   <KpiCard icon="✉️" label={t("admin.messagesMessages.total")} value="156" gradient="from-blue-500 to-indigo-600" />
                   <KpiCard icon="📩" label={t("admin.messagesMessages.unread")} value="12" gradient="from-amber-500 to-orange-600" />
                   <KpiCard icon="📤" label={t("admin.messagesMessages.sent")} value="89" gradient="from-emerald-500 to-green-600" />
-                  <KpiCard icon="👥" label="Чаты" value="34" gradient="from-violet-500 to-purple-600" />
+                  <KpiCard icon="👥" label={t("admin.chats")} value="34" gradient="from-violet-500 to-purple-600" />
                 </div>
                 <ChartCard title={t("admin.messagesMessages.title")}>
                   <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
@@ -1075,7 +1075,7 @@ function AdminInner() {
                   <KpiCard icon="🔔" label={t("admin.notificationsNotifications.total")} value="1,247" gradient="from-blue-500 to-indigo-600" />
                   <KpiCard icon="📩" label={t("admin.notificationsNotifications.unread")} value="23" gradient="from-amber-500 to-orange-600" />
                   <KpiCard icon="📤" label={t("admin.notificationsNotifications.sent")} value="892" gradient="from-emerald-500 to-green-600" />
-                  <KpiCard icon="📧" label="Email" value="456" gradient="from-violet-500 to-purple-600" />
+                  <KpiCard icon="📧" label={t("admin.email")} value="456" gradient="from-violet-500 to-purple-600" />
                 </div>
                 <ChartCard title={t("admin.notificationsNotifications.title")}>
                   <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
@@ -1088,9 +1088,9 @@ function AdminInner() {
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <KpiCard icon="📊" label={t("admin.reports.total")} value="28" gradient="from-blue-500 to-indigo-600" />
-                  <KpiCard icon="📅" label={t("admin.reports.lastGenerated")} value="Сегодня" gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="📅" label={t("admin.reports.lastGenerated")} value={t("admin.today")} gradient="from-emerald-500 to-green-600" />
                   <KpiCard icon="📄" label={t("admin.reports.formats")} value="PDF, Excel" gradient="from-violet-500 to-purple-600" />
-                  <KpiCard icon="🔄" label="Авто" value="Еженедельно" gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="🔄" label={t("admin.auto")} value={t("admin.weekly")} gradient="from-amber-500 to-orange-600" />
                 </div>
                 <ChartCard title={t("admin.reports.title")}>
                   <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
@@ -1120,7 +1120,7 @@ function AdminInner() {
                   <KpiCard icon="📄" label={t("admin.documents.total")} value="156" gradient="from-blue-500 to-indigo-600" />
                   <KpiCard icon="📝" label={t("admin.documents.contracts")} value="42" gradient="from-emerald-500 to-green-600" />
                   <KpiCard icon="🧾" label={t("admin.documents.invoices")} value="98" gradient="from-violet-500 to-purple-600" />
-                  <KpiCard icon="📁" label="Папки" value="12" gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="📁" label={t("admin.folders")} value="12" gradient="from-amber-500 to-orange-600" />
                 </div>
                 <ChartCard title={t("admin.documents.title")}>
                   <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>

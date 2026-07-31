@@ -1783,7 +1783,13 @@
       "activeKeys": "Active keys",
       "avgResponse": "Avg. response",
       "errors2": "Errors"
-    }
+    },
+    "chats": "Chats",
+    "email": "Email",
+    "folders": "Folders",
+    "auto": "Auto",
+    "weekly": "Weekly",
+    "today": "Today"
   },
   "adminDashboard": {
     "title": "Admin Dashboard — Full Analytics",
