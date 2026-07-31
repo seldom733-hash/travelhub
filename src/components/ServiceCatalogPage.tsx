@@ -312,7 +312,7 @@ export default function ServiceCatalogPage({
                       lng: (s.longitude as number) || 0,
                       price: Number(s.discountPrice || s.price),
                       rating: Number(s.rating) || 0,
-                      image: (s.images as string[])?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&q=60",
+                      image: (typeof s.images === "string" ? s.images.split(",").filter(Boolean) : s.images as string[])?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&q=60",
                       city: String(s.city || ""),
                       country: String(s.country || ""),
                       type: String(s.type || ""),

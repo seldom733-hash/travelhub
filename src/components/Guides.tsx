@@ -47,7 +47,7 @@ function transformGuides(json: unknown): GuideData[] {
     rating: s.rating as number,
     reviewCount: (s._count as { reviews: number })?.reviews || 0,
     price: Number(s.discountPrice || s.price),
-    image: (s.images as string[])?.[0] || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    image: (typeof s.images === "string" ? s.images.split(",").filter(Boolean) : s.images as string[])?.[0] || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
     languages: Array.isArray(s.languages)
       ? (s.languages as string[])
       : typeof s.languages === "string"

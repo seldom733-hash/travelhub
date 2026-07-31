@@ -24,7 +24,7 @@ function mapGuideService(s: Record<string, unknown>, t: (key: string) => string)
   return {
     id: s.id as string,
     name: s.title as string,
-    image: (s.images as string[])?.[0] || config.defaultImage,
+    image: (typeof s.images === "string" ? s.images.split(",").filter(Boolean) : s.images as string[])?.[0] || config.defaultImage,
     city: s.city as string,
     country: s.country as string,
     flag: flagMap[s.countryCode as string] || "🧭",
