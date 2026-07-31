@@ -32,6 +32,15 @@ export interface ServiceCatalogConfig {
   skeletonCount?: number;
 }
 
+export interface ServiceCatalogInitialData {
+  items: Service[];
+  totalCount: number;
+  totalPages: number;
+  facets?: Record<string, string[]> | null;
+  rawServices?: Record<string, unknown>[];
+  extra?: any;
+}
+
 export interface ServiceCatalogPageProps {
   config: ServiceCatalogConfig;
   /**
@@ -52,6 +61,11 @@ export interface ServiceCatalogPageProps {
   showCount?: boolean;
   initialFilterState?: FilterState;
   /**
+   * Pre-fetched data from the server for SSR. When provided,
+   * the component renders immediately without showing a loading skeleton.
+   */
+  initialData?: ServiceCatalogInitialData;
+  /**
    * Called with the full API response after each successful fetch.
    * Useful for pages that need extra data from the response (e.g. tourCounts).
    */
@@ -69,22 +83,24 @@ export default function ServiceCatalogPage({
   showViewToggle = true,
   showCount = true,
   initialFilterState,
+  initialData,
   onDataLoaded,
 }: ServiceCatalogPageProps) {
   const { t } = useI18n();
-  const [items, setItems] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<Service[]>(initialData?.items || []);
+  const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(initialData?.totalPages || 1);
+  const [totalCount, setTotalCount] = useState(initialData?.totalCount || 0);
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
   const [sortBy, setSortBy] = useState("popular");
   const [filterState, setFilterState] = useState<FilterState>(initialFilterState || {});
   const [fetchTrigger, setFetchTrigger] = useState(0);
-  const [facets, setFacets] = useState<Record<string, string[]> | null>(null);
+  const [facets, setFacets] = useState<Record<string, string[]> | null>(initialData?.facets || null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
-  const [rawServices, setRawServices] = useState<Record<string, unknown>[]>([]);
+  const [rawServices, setRawServices] = useState<Record<string, unknown>[]>(initialData?.rawServices || []);
+  const initialFetchDoneRef = useRef(!!initialData);
 
 
 
@@ -108,6 +124,12 @@ export default function ServiceCatalogPage({
   }, []);
 
   useEffect(() => {
+    // Skip initial fetch if SSR data was provided
+    if (initialFetchDoneRef.current && fetchTrigger === 0) {
+      initialFetchDoneRef.current = false;
+      return;
+    }
+
     const controller = new AbortController();
 
     const fetchItems = async () => {

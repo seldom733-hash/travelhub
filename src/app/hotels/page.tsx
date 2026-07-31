@@ -1,20 +1,29 @@
-"use client";
+import { Suspense } from "react";
+import { fetchServicesForSSR } from "@/lib/ssr-helpers";
+import HotelsClient from "@/components/HotelsClient";
 
-import ServiceCatalogPage from "@/components/ServiceCatalogPage";
+export const dynamic = "force-dynamic";
 
-const config = {
-  serviceType: "HOTEL",
-  filterCategory: "hotel",
-  heroGradient: "from-blue-600 to-cyan-500",
-  heroIcon: "🏨",
-  heroTitleKey: "nav.hotels",
-  heroSubtitleKey: "hotels.subtitle",
-  emptyIcon: "🏨",
-  emptyTextKey: "catalog.empty.hotels",
-  defaultImage: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
-  priceUnitKey: "catalog.perNight",
-};
+async function HotelsData() {
+  let initialData;
+  try {
+    initialData = await fetchServicesForSSR("HOTEL", "catalog.perNight", (key: string) => {
+      const translations: Record<string, string> = {
+        "catalog.perPerson": "за человека",
+        "catalog.perNight": "за ночь",
+      };
+      return translations[key] || key;
+    });
+  } catch {
+    // If fetch fails, render without SSR data (client will fetch)
+  }
+  return <HotelsClient initialData={initialData} />;
+}
 
 export default function HotelsPage() {
-  return <ServiceCatalogPage config={config} />;
+  return (
+    <Suspense fallback={<div className="min-h-[calc(100vh-120px)] bg-gray-50 animate-pulse" />}>
+      <HotelsData />
+    </Suspense>
+  );
 }
