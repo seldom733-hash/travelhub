@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin-helpers";
+import { requireAdmin, parsePaginationParams } from "@/lib/admin-helpers";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -10,10 +10,8 @@ export async function GET(request: NextRequest) {
     if (auth.response) return auth.response;
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const { page, limit, skip } = parsePaginationParams(searchParams, { limit: 20 });
     const search = searchParams.get("search") || "";
-    const skip = (page - 1) * limit;
 
     const where: any = { role: "PARTNER" };
     if (search) {

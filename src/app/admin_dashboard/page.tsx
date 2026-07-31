@@ -174,6 +174,9 @@ function AdminDashboardInner() {
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [moderationPage, setModerationPage] = useState(1);
+  const [moderationTotalPages, setModerationTotalPages] = useState(1);
+  const [moderationTotal, setModerationTotal] = useState(0);
 
   // Users management state
   const [usersList, setUsersList] = useState<any[]>([]);
@@ -188,6 +191,9 @@ function AdminDashboardInner() {
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditActionFilter, setAuditActionFilter] = useState("ALL");
   const [auditTargetFilter, setAuditTargetFilter] = useState("ALL");
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditTotalPages, setAuditTotalPages] = useState(1);
+  const [auditTotal, setAuditTotal] = useState(0);
 
   // User action modals
   const [banModalUser, setBanModalUser] = useState<any>(null);
@@ -195,20 +201,24 @@ function AdminDashboardInner() {
   const [roleModalUser, setRoleModalUser] = useState<any>(null);
   const [roleModalNewRole, setRoleModalNewRole] = useState("");
 
-  const fetchModeration = useCallback(async (status = moderationFilter) => {
+  const fetchModeration = useCallback(async (status = moderationFilter, page = moderationPage) => {
     setModerationLoading(true);
     try {
-      const res = await fetch(`/api/admin/moderation?status=${status}&limit=50`, { credentials: "include" });
+      const res = await fetch(`/api/admin/moderation?status=${status}&page=${page}&limit=20`, { credentials: "include" });
       if (res.ok) {
         const d = await res.json();
         setModerationItems(d.services || []);
+        if (d.pagination) {
+          setModerationTotalPages(d.pagination.totalPages || 1);
+          setModerationTotal(d.pagination.total || 0);
+        }
       }
     } catch (e) {
       console.error("Moderation fetch error:", e);
     } finally {
       setModerationLoading(false);
     }
-  }, [moderationFilter]);
+  }, [moderationFilter, moderationPage]);
 
   const handleModeration = useCallback(async (serviceId: string, action: "approve" | "reject", reason?: string) => {
     setActionLoading(serviceId);
@@ -344,35 +354,40 @@ function AdminDashboardInner() {
     }
   }, [fetchUsers]);
 
-  const fetchAuditLogs = useCallback(async () => {
+  const fetchAuditLogs = useCallback(async (page = auditPage) => {
     setAuditLoading(true);
     try {
       const params = new URLSearchParams();
       if (auditActionFilter !== "ALL") params.set("action", auditActionFilter);
       if (auditTargetFilter !== "ALL") params.set("targetType", auditTargetFilter);
-      params.set("limit", "100");
+      params.set("page", String(page));
+      params.set("limit", "20");
       const res = await fetch(`/api/admin/audit?${params}`, { credentials: "include" });
       if (res.ok) {
         const d = await res.json();
         setAuditLogs(d.logs || []);
+        if (d.pagination) {
+          setAuditTotalPages(d.pagination.totalPages || 1);
+          setAuditTotal(d.pagination.total || 0);
+        }
       }
     } catch (e) {
       console.error("Audit fetch error:", e);
     } finally {
       setAuditLoading(false);
     }
-  }, [auditActionFilter, auditTargetFilter]);
+  }, [auditActionFilter, auditTargetFilter, auditPage]);
 
-  // Fetch data when tabs are active
+  // Fetch data when tabs are active (page resets handled via explicit page=1 on filter change)
   useEffect(() => {
     if (activeTab === "moderation") {
-      fetchModeration(moderationFilter);
+      fetchModeration(moderationFilter, moderationPage);
     } else if (activeTab === "users_mgmt") {
       fetchUsers();
     } else if (activeTab === "audit") {
-      fetchAuditLogs();
+      fetchAuditLogs(auditPage);
     }
-  }, [activeTab, moderationFilter, fetchModeration, fetchUsers, auditActionFilter, auditTargetFilter, fetchAuditLogs]);
+  }, [activeTab, moderationFilter, moderationPage, fetchModeration, fetchUsers, auditActionFilter, auditTargetFilter, auditPage, fetchAuditLogs]);
 
   // Auto-refresh polling (ADMIN only - MODERATOR uses basic stats)
   useEffect(() => {
@@ -978,7 +993,7 @@ function AdminDashboardInner() {
                       {["PENDING", "APPROVED", "REJECTED", "ALL"].map((status) => (
                         <button
                           key={status}
-                          onClick={() => setModerationFilter(status)}
+                          onClick={() => { setModerationFilter(status); setModerationPage(1); }}
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${moderationFilter === status ? "bg-white shadow-sm text-secondary" : "text-gray-500 hover:text-gray-700"}`}
                         >
                           {status === "PENDING" ? "⏳ Ожидают" : status === "APPROVED" ? "✅ Одобрены" : status === "REJECTED" ? "❌ Отклонены" : "📋 Все"}
@@ -1087,9 +1102,51 @@ function AdminDashboardInner() {
                               </div>
                             )}
                           </div>
-                        </div>
-                      ))}
+                        </div>                          ))}
                     </div>
+
+                    {/* Moderation Pagination */}
+                    {moderationTotalPages > 1 && (
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <span className="text-xs text-gray-500">
+                          Всего: {moderationTotal} • Стр. {moderationPage} из {moderationTotalPages}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setModerationPage(p => Math.max(1, p - 1))}
+                            disabled={moderationPage <= 1}
+                            className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            ← Назад
+                          </button>
+                          {Array.from({ length: Math.min(5, moderationTotalPages) }, (_, i) => {
+                            const start = Math.max(1, Math.min(moderationPage - 2, moderationTotalPages - 4));
+                            const pageNum = start + i;
+                            if (pageNum > moderationTotalPages) return null;
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => setModerationPage(pageNum)}
+                                className={`w-8 h-8 text-xs font-medium rounded-lg transition-colors ${
+                                  moderationPage === pageNum
+                                    ? "bg-primary text-white"
+                                    : "text-gray-600 hover:bg-gray-100"
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                          <button
+                            onClick={() => setModerationPage(p => Math.min(moderationTotalPages, p + 1))}
+                            disabled={moderationPage >= moderationTotalPages}
+                            className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            Далее →
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </Card>
                 )}
               </>
@@ -1102,7 +1159,7 @@ function AdminDashboardInner() {
                   <div className="flex flex-wrap items-center gap-3 mb-4">
                     <select
                       value={auditActionFilter}
-                      onChange={(e) => setAuditActionFilter(e.target.value)}
+                      onChange={(e) => { setAuditActionFilter(e.target.value); setAuditPage(1); }}
                       className="h-10 px-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none text-sm"
                     >
                       <option value="ALL">Все действия</option>
@@ -1114,7 +1171,7 @@ function AdminDashboardInner() {
                     </select>
                     <select
                       value={auditTargetFilter}
-                      onChange={(e) => setAuditTargetFilter(e.target.value)}
+                      onChange={(e) => { setAuditTargetFilter(e.target.value); setAuditPage(1); }}
                       className="h-10 px-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none text-sm"
                     >
                       <option value="ALL">Все объекты</option>
@@ -1123,7 +1180,7 @@ function AdminDashboardInner() {
                       <option value="booking">Бронирования</option>
                     </select>
                     <button
-                      onClick={fetchAuditLogs}
+                      onClick={() => fetchAuditLogs()}
                       className="h-10 px-4 bg-primary text-white rounded-xl text-sm hover:bg-primary-dark transition-colors"
                     >
                       🔄 Обновить
@@ -1207,6 +1264,49 @@ function AdminDashboardInner() {
                         </tbody>
                       </table>
                     </div>
+
+                    {/* Audit Pagination */}
+                    {auditTotalPages > 1 && (
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <span className="text-xs text-gray-500">
+                          Всего: {auditTotal} • Стр. {auditPage} из {auditTotalPages}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setAuditPage(p => Math.max(1, p - 1))}
+                            disabled={auditPage <= 1}
+                            className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            ← Назад
+                          </button>
+                          {Array.from({ length: Math.min(5, auditTotalPages) }, (_, i) => {
+                            const start = Math.max(1, Math.min(auditPage - 2, auditTotalPages - 4));
+                            const pageNum = start + i;
+                            if (pageNum > auditTotalPages) return null;
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => setAuditPage(pageNum)}
+                                className={`w-8 h-8 text-xs font-medium rounded-lg transition-colors ${
+                                  auditPage === pageNum
+                                    ? "bg-primary text-white"
+                                    : "text-gray-600 hover:bg-gray-100"
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                          <button
+                            onClick={() => setAuditPage(p => Math.min(auditTotalPages, p + 1))}
+                            disabled={auditPage >= auditTotalPages}
+                            className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            Далее →
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </Card>
                 )}
               </>

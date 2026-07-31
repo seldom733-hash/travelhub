@@ -40,3 +40,19 @@ export async function requireAdmin(
 
   return { payload: payload as AuthPayload };
 }
+
+/**
+ * Safely parse pagination params from URL search params.
+ * Returns validated page (>=1) and limit (1..100) with defaults.
+ */
+export function parsePaginationParams(
+  searchParams: URLSearchParams,
+  defaults: { page?: number; limit?: number } = {}
+): { page: number; limit: number; skip: number } {
+  const rawPage = parseInt(searchParams.get("page") || String(defaults.page ?? 1), 10);
+  const rawLimit = parseInt(searchParams.get("limit") || String(defaults.limit ?? 20), 10);
+  const page = Number.isFinite(rawPage) && rawPage >= 1 ? rawPage : 1;
+  const limit = Number.isFinite(rawLimit) && rawLimit >= 1 ? Math.min(rawLimit, 100) : 20;
+  const skip = (page - 1) * limit;
+  return { page, limit, skip };
+}

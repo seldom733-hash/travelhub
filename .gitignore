@@ -45,6 +45,11 @@ nul
 # prisma migrations (generated)
 prisma/migrations/
 
+# local database
+prisma/dev.db
+prisma/dev.db-shm
+prisma/dev.db-wal
+
 # misc temp files
 0
 

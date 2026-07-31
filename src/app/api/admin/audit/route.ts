@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin-helpers";
+import { requireAdmin, parsePaginationParams } from "@/lib/admin-helpers";
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin(request, ["ADMIN"]);
@@ -13,9 +13,7 @@ export async function GET(request: NextRequest) {
     const action = url.searchParams.get("action") || "";
     const targetType = url.searchParams.get("targetType") || "";
     const actorId = url.searchParams.get("actorId") || "";
-    const page = parseInt(url.searchParams.get("page") || "1");
-    const limit = parseInt(url.searchParams.get("limit") || "50");
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = parsePaginationParams(url.searchParams, { limit: 50 });
 
     const where: any = {};
 
