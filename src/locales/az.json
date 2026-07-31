@@ -1451,7 +1451,25 @@
       "usersMgmt": "İdarəetmə",
       "audit": "Audit",
       "system": "Sistem",
-      "ai": "AI Mərkəzi"
+      "ai": "AI Mərkəzi",
+      "dashboard": "İdarəetmə paneli",
+      "orders": "Sifarişlər",
+      "moderators": "Moderatorlar",
+      "customers": "Müştərilər",
+      "payments": "Ödənişlər",
+      "commissions": "Komissiyalar",
+      "refunds": "Geri qaytarmalar",
+      "promotions": "Aksiyalar",
+      "support": "Dəstək",
+      "messages": "Mesajlar",
+      "notifications": "Bildirişlər",
+      "reports": "Hesabatlar",
+      "calendar": "Təqvim",
+      "documents": "Sənədlər",
+      "settings": "Parametrlər",
+      "logs": "Jurnallar",
+      "security": "Təhlükəsizlik",
+      "api": "API"
     },
     "overview": {
       "salesToday": "Bu günkü satış",
@@ -1625,6 +1643,126 @@
       "back": "← Geri",
       "next": "İrəli →",
       "search": "Axtar..."
+    },
+    "orders": {
+      "title": "Sifarişlər",
+      "total": "Cəmi sifarişlər",
+      "pending": "Gözləyir",
+      "completed": "Tamamlandı",
+      "cancelled": "Ləğv edildi",
+      "revenue": "Gəlir"
+    },
+    "moderators": {
+      "title": "Moderatorlar",
+      "total": "Moderatorlar",
+      "active": "Aktiv",
+      "lastActive": "Son aktivlik",
+      "actions": "Əməliyyatlar"
+    },
+    "customers": {
+      "title": "Müştərilər",
+      "total": "Müştərilər",
+      "newToday": "Bu gün yeni",
+      "returning": "Qayıdan",
+      "avgSpending": "Orta xərc",
+      "topCountries": "Ölkələr",
+      "devices": "Cihazlar"
+    },
+    "payments": {
+      "title": "Ödənişlər",
+      "total": "Cəmi",
+      "successful": "Uğurlu",
+      "pending": "Gözləyir",
+      "failed": "Xəta",
+      "totalAmount": "Məbləğ"
+    },
+    "commissions": {
+      "title": "Komissiyalar",
+      "total": "Komissiyalar",
+      "earned": "Qazanılan",
+      "pending": "Gözləyir",
+      "paid": "Ödənilib",
+      "byType": "Növə görə"
+    },
+    "refunds": {
+      "title": "Geri qaytarmalar",
+      "total": "Sorğular",
+      "pending": "Gözləyir",
+      "approved": "Təsdiqlənib",
+      "rejected": "Rədd edilib",
+      "amount": "Məbləğ"
+    },
+    "promotions": {
+      "title": "Aksiyalar",
+      "active": "Aktiv",
+      "total": "Cəmi",
+      "used": "İstifadə olunub",
+      "revenue": "Gəlir"
+    },
+    "support": {
+      "title": "Dəstək",
+      "total": "Sorğular",
+      "open": "Açıq",
+      "resolved": "Həll olunub",
+      "avgResponse": "Orta cavab"
+    },
+    "messagesMessages": {
+      "title": "Mesajlar",
+      "total": "Mesajlar",
+      "unread": "Oxunmamış",
+      "sent": "Göndərilib"
+    },
+    "notificationsNotifications": {
+      "title": "Bildirişlər",
+      "total": "Bildirişlər",
+      "unread": "Oxunmamış",
+      "sent": "Göndərilib"
+    },
+    "reports": {
+      "title": "Hesabatlar",
+      "total": "Hesabatlar",
+      "lastGenerated": "Son hesabat",
+      "formats": "Formatlar"
+    },
+    "calendarCalendar": {
+      "title": "Təqvim",
+      "today": "Bu gün",
+      "thisWeek": "Bu həftə",
+      "thisMonth": "Bu ay"
+    },
+    "documents": {
+      "title": "Sənədlər",
+      "total": "Sənədlər",
+      "contracts": "Müqavilələr",
+      "invoices": "Fakturalar"
+    },
+    "settings": {
+      "title": "Parametrlər",
+      "general": "Ümumi",
+      "payments2": "Ödənişlər",
+      "notifications2": "Bildirişlər",
+      "security2": "Təhlükəsizlik"
+    },
+    "logs": {
+      "title": "Jurnallar",
+      "total": "Yazılar",
+      "errors": "Xətalar",
+      "warnings": "Xəbərdarlıqlar",
+      "info": "Məlumat"
+    },
+    "security2": {
+      "title": "Təhlükəsizlik",
+      "failedLogins": "Uğursuz girişlər",
+      "blocked": "Bloklanıb",
+      "alerts": "Xəbərdarlıqlar",
+      "apiKeys": "API açarları"
+    },
+    "apiApi": {
+      "title": "API",
+      "totalRequests": "Sorğular",
+      "activeKeys": "Aktiv açarlar",
+      "avgResponse": "Orta cavab",
+      "errors2": "Xətalar"
     }
   },
   "adminDashboard": {

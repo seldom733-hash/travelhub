@@ -1471,7 +1471,25 @@
       "usersMgmt": "Management",
       "audit": "Audit",
       "system": "System",
-      "ai": "AI Center"
+      "ai": "AI Center",
+      "dashboard": "Dashboard",
+      "orders": "Orders",
+      "moderators": "Moderators",
+      "customers": "Customers",
+      "payments": "Payments",
+      "commissions": "Commissions",
+      "refunds": "Refunds",
+      "promotions": "Promotions",
+      "support": "Support",
+      "messages": "Messages",
+      "notifications": "Notifications",
+      "reports": "Reports",
+      "calendar": "Calendar",
+      "documents": "Documents",
+      "settings": "Settings",
+      "logs": "Logs",
+      "security": "Security",
+      "api": "API"
     },
     "overview": {
       "salesToday": "Sales Today",
@@ -1645,6 +1663,126 @@
       "back": "← Back",
       "next": "Next →",
       "search": "Search..."
+    },
+    "orders": {
+      "title": "Orders",
+      "total": "Total orders",
+      "pending": "Pending",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "revenue": "Revenue"
+    },
+    "moderators": {
+      "title": "Moderators",
+      "total": "Moderators",
+      "active": "Active",
+      "lastActive": "Last active",
+      "actions": "Actions"
+    },
+    "customers": {
+      "title": "Customers",
+      "total": "Customers",
+      "newToday": "New today",
+      "returning": "Returning",
+      "avgSpending": "Avg. spend",
+      "topCountries": "Countries",
+      "devices": "Devices"
+    },
+    "payments": {
+      "title": "Payments",
+      "total": "Total",
+      "successful": "Successful",
+      "pending": "Pending",
+      "failed": "Failed",
+      "totalAmount": "Amount"
+    },
+    "commissions": {
+      "title": "Commissions",
+      "total": "Commissions",
+      "earned": "Earned",
+      "pending": "Pending",
+      "paid": "Paid",
+      "byType": "By type"
+    },
+    "refunds": {
+      "title": "Refunds",
+      "total": "Requests",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "amount": "Amount"
+    },
+    "promotions": {
+      "title": "Promotions",
+      "active": "Active",
+      "total": "Total",
+      "used": "Used",
+      "revenue": "Revenue"
+    },
+    "support": {
+      "title": "Support",
+      "total": "Tickets",
+      "open": "Open",
+      "resolved": "Resolved",
+      "avgResponse": "Avg. response"
+    },
+    "messagesMessages": {
+      "title": "Messages",
+      "total": "Messages",
+      "unread": "Unread",
+      "sent": "Sent"
+    },
+    "notificationsNotifications": {
+      "title": "Notifications",
+      "total": "Notifications",
+      "unread": "Unread",
+      "sent": "Sent"
+    },
+    "reports": {
+      "title": "Reports",
+      "total": "Reports",
+      "lastGenerated": "Last generated",
+      "formats": "Formats"
+    },
+    "calendarCalendar": {
+      "title": "Calendar",
+      "today": "Today",
+      "thisWeek": "This week",
+      "thisMonth": "This month"
+    },
+    "documents": {
+      "title": "Documents",
+      "total": "Documents",
+      "contracts": "Contracts",
+      "invoices": "Invoices"
+    },
+    "settings": {
+      "title": "Settings",
+      "general": "General",
+      "payments2": "Payments",
+      "notifications2": "Notifications",
+      "security2": "Security"
+    },
+    "logs": {
+      "title": "Logs",
+      "total": "Entries",
+      "errors": "Errors",
+      "warnings": "Warnings",
+      "info": "Info"
+    },
+    "security2": {
+      "title": "Security",
+      "failedLogins": "Failed logins",
+      "blocked": "Blocked",
+      "alerts": "Alerts",
+      "apiKeys": "API keys"
+    },
+    "apiApi": {
+      "title": "API",
+      "totalRequests": "Requests",
+      "activeKeys": "Active keys",
+      "avgResponse": "Avg. response",
+      "errors2": "Errors"
     }
   },
   "adminDashboard": {

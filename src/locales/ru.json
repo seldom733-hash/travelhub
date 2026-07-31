@@ -1471,7 +1471,25 @@
       "usersMgmt": "Управление",
       "audit": "Аудит",
       "system": "Система",
-      "ai": "AI Центр"
+      "ai": "AI Центр",
+      "dashboard": "Дашборд",
+      "orders": "Заказы",
+      "moderators": "Модераторы",
+      "customers": "Клиенты",
+      "payments": "Платежи",
+      "commissions": "Комиссии",
+      "refunds": "Возвраты",
+      "promotions": "Акции",
+      "support": "Поддержка",
+      "messages": "Сообщения",
+      "notifications": "Уведомления",
+      "reports": "Отчёты",
+      "calendar": "Календарь",
+      "documents": "Документы",
+      "settings": "Настройки",
+      "logs": "Логи",
+      "security": "Безопасность",
+      "api": "API"
     },
     "overview": {
       "salesToday": "Продажи сегодня",
@@ -1645,6 +1663,143 @@
       "back": "← Назад",
       "next": "Далее →",
       "search": "Поиск..."
+    },
+    "orders": {
+      "title": "Заказы",
+      "subtitle": "Управление заказами",
+      "total": "Всего заказов",
+      "pending": "Ожидают",
+      "completed": "Завершены",
+      "cancelled": "Отменены",
+      "revenue": "Выручка"
+    },
+    "moderators": {
+      "title": "Модераторы",
+      "subtitle": "Управление модераторами",
+      "total": "Модераторов",
+      "active": "Активных",
+      "lastActive": "Последняя активность",
+      "actions": "Действий"
+    },
+    "customers": {
+      "title": "Клиенты",
+      "subtitle": "Аналитика клиентов",
+      "total": "Клиентов",
+      "newToday": "Новых сегодня",
+      "returning": "Возвращаются",
+      "avgSpending": "Средний чек",
+      "topCountries": "Страны",
+      "devices": "Устройства"
+    },
+    "payments": {
+      "title": "Платежи",
+      "subtitle": "История платежей",
+      "total": "Всего",
+      "successful": "Успешные",
+      "pending": "Ожидают",
+      "failed": "Ошибка",
+      "totalAmount": "Сумма"
+    },
+    "commissions": {
+      "title": "Комиссии",
+      "subtitle": "Комиссии платформы",
+      "total": "Комиссий",
+      "earned": "Заработано",
+      "pending": "Ожидает",
+      "paid": "Выплачено",
+      "byType": "По типам"
+    },
+    "refunds": {
+      "title": "Возвраты",
+      "subtitle": "Запросы на возврат",
+      "total": "Запросов",
+      "pending": "Ожидают",
+      "approved": "Одобрены",
+      "rejected": "Отклонены",
+      "amount": "Сумма"
+    },
+    "promotions": {
+      "title": "Акции",
+      "subtitle": "Промо-акции и скидки",
+      "active": "Активных",
+      "total": "Всего",
+      "used": "Использовано",
+      "revenue": "Выручка"
+    },
+    "support": {
+      "title": "Поддержка",
+      "subtitle": "Тикеты поддержки",
+      "total": "Тикетов",
+      "open": "Открытых",
+      "resolved": "Решено",
+      "avgResponse": "Среднее время ответа"
+    },
+    "messagesMessages": {
+      "title": "Сообщения",
+      "subtitle": "Внутренняя почта",
+      "total": "Сообщений",
+      "unread": "Непрочитанных",
+      "sent": "Отправлено"
+    },
+    "notificationsNotifications": {
+      "title": "Уведомления",
+      "subtitle": "История уведомлений",
+      "total": "Уведомлений",
+      "unread": "Непрочитанных",
+      "sent": "Отправлено"
+    },
+    "reports": {
+      "title": "Отчёты",
+      "subtitle": "Генерация отчётов",
+      "total": "Отчётов",
+      "lastGenerated": "Последний отчёт",
+      "formats": "Форматы"
+    },
+    "calendarCalendar": {
+      "title": "Календарь",
+      "subtitle": "Календарь бронирований",
+      "today": "Сегодня",
+      "thisWeek": "Эта неделя",
+      "thisMonth": "Этот месяц"
+    },
+    "documents": {
+      "title": "Документы",
+      "subtitle": "Управление документами",
+      "total": "Документов",
+      "contracts": "Договоры",
+      "invoices": "Счета"
+    },
+    "settings": {
+      "title": "Настройки",
+      "subtitle": "Настройки платформы",
+      "general": "Общие",
+      "payments2": "Платежи",
+      "notifications2": "Уведомления",
+      "security2": "Безопасность"
+    },
+    "logs": {
+      "title": "Логи",
+      "subtitle": "Системные логи",
+      "total": "Записей",
+      "errors": "Ошибки",
+      "warnings": "Предупреждения",
+      "info": "Инфо"
+    },
+    "security2": {
+      "title": "Безопасность",
+      "subtitle": "Безопасность системы",
+      "failedLogins": "Неудачные входы",
+      "blocked": "Заблокированы",
+      "alerts": "Оповещения",
+      "apiKeys": "API ключи"
+    },
+    "apiApi": {
+      "title": "API",
+      "subtitle": "API использование",
+      "totalRequests": "Запросов",
+      "activeKeys": "Активных ключей",
+      "avgResponse": "Среднее время",
+      "errors2": "Ошибки"
     }
   },
   "adminDashboard": {

@@ -13,7 +13,7 @@ import DataTable from "@/components/admin/DataTable";
 
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 
-type TabId = "overview" | "analytics" | "bookings" | "services" | "partners" | "users" | "finance" | "marketing" | "moderation" | "users_mgmt" | "audit" | "system" | "ai";
+type TabId = "overview" | "analytics" | "bookings" | "orders" | "services" | "partners" | "users" | "moderators" | "customers" | "finance" | "payments" | "commissions" | "refunds" | "marketing" | "promotions" | "support" | "messages" | "notifications" | "reports" | "calendar" | "documents" | "moderation" | "users_mgmt" | "audit" | "settings" | "system" | "logs" | "security" | "api" | "ai";
 
 interface CeoData {
   today: { sales: number; bookings: number; commission: number; newUsers: number; newPartners: number; cancellations: number };
@@ -187,15 +187,32 @@ function AdminInner() {
     { icon: "📊", label: t("admin.sidebar.overview"), id: "overview" },
     { icon: "📈", label: t("admin.sidebar.analytics"), id: "analytics", adminOnly: true },
     { icon: "📋", label: t("admin.sidebar.bookings"), id: "bookings", adminOnly: true },
+    { icon: "🛒", label: t("admin.sidebar.orders"), id: "orders", adminOnly: true },
     { icon: "🏨", label: t("admin.sidebar.services"), id: "services", adminOnly: true },
     { icon: "🤝", label: t("admin.sidebar.partners"), id: "partners", adminOnly: true },
     { icon: "👥", label: t("admin.sidebar.users"), id: "users", adminOnly: true },
+    { icon: "🛡", label: t("admin.sidebar.moderators"), id: "moderators", adminOnly: true },
+    { icon: "👤", label: t("admin.sidebar.customers"), id: "customers", adminOnly: true },
     { icon: "💰", label: t("admin.sidebar.finance"), id: "finance", adminOnly: true },
+    { icon: "💳", label: t("admin.sidebar.payments"), id: "payments", adminOnly: true },
+    { icon: "🏦", label: t("admin.sidebar.commissions"), id: "commissions", adminOnly: true },
+    { icon: "↩️", label: t("admin.sidebar.refunds"), id: "refunds", adminOnly: true },
     { icon: "📣", label: t("admin.sidebar.marketing"), id: "marketing", adminOnly: true },
+    { icon: "🎁", label: t("admin.sidebar.promotions"), id: "promotions", adminOnly: true },
+    { icon: "🎧", label: t("admin.sidebar.support"), id: "support", adminOnly: true },
+    { icon: "✉️", label: t("admin.sidebar.messages"), id: "messages", adminOnly: true },
+    { icon: "🔔", label: t("admin.sidebar.notifications"), id: "notifications", adminOnly: true },
+    { icon: "📊", label: t("admin.sidebar.reports"), id: "reports", adminOnly: true },
+    { icon: "📅", label: t("admin.sidebar.calendar"), id: "calendar", adminOnly: true },
+    { icon: "📄", label: t("admin.sidebar.documents"), id: "documents", adminOnly: true },
     { icon: "🛡", label: t("admin.sidebar.moderation"), id: "moderation" },
     { icon: "👤", label: t("admin.sidebar.usersMgmt"), id: "users_mgmt", adminOnly: true },
     { icon: "📋", label: t("admin.sidebar.audit"), id: "audit", adminOnly: true },
     { icon: "⚙️", label: t("admin.sidebar.system"), id: "system", adminOnly: true },
+    { icon: "🔧", label: t("admin.sidebar.settings"), id: "settings", adminOnly: true },
+    { icon: "📜", label: t("admin.sidebar.logs"), id: "logs", adminOnly: true },
+    { icon: "🔒", label: t("admin.sidebar.security"), id: "security", adminOnly: true },
+    { icon: "🔌", label: t("admin.sidebar.api"), id: "api", adminOnly: true },
     { icon: "🤖", label: t("admin.sidebar.ai"), id: "ai", adminOnly: true },
   ].filter(item => !isModerator || !item.adminOnly);
 
@@ -905,6 +922,269 @@ function AdminInner() {
                     </div>
                   </div>
                 )}
+              </>
+            )}
+
+            {/* ════════════════ ORDERS ════════════════ */}
+            {activeTab === "orders" && data?.finance && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="🛒" label={t("admin.orders.total")} value={String(data.finance.gmv > 0 ? Math.round(data.finance.gmv / 500) : 0)} gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="⏳" label={t("admin.orders.pending")} value={String(data.finance.pendingPayments)} gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="✅" label={t("admin.orders.completed")} value={String(data.ceo?.totals.bookings || 0)} gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="❌" label={t("admin.orders.cancelled")} value={String(data.ceo?.today.cancellations || 0)} gradient="from-rose-500 to-red-600" />
+                </div>
+                <ChartCard title={t("admin.orders.title")} subtitle={t("admin.orders.subtitle")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ MODERATORS ════════════════ */}
+            {activeTab === "moderators" && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="🛡" label={t("admin.moderators.total")} value="3" gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="✅" label={t("admin.moderators.active")} value="2" gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="⏰" label={t("admin.moderators.lastActive")} value="5м" gradient="from-violet-500 to-purple-600" />
+                  <KpiCard icon="📋" label={t("admin.moderators.actions")} value="47" gradient="from-amber-500 to-orange-600" />
+                </div>
+                <ChartCard title={t("admin.moderators.title")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ CUSTOMERS ════════════════ */}
+            {activeTab === "customers" && data?.users && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="👥" label={t("admin.customers.total")} value={fmt(data.users.total)} gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="🆕" label={t("admin.customers.newToday")} value={String(data.users.newByDay[data.users.newByDay.length - 1]?.count || 0)} gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="🔄" label={t("admin.customers.returning")} value={String(data.users.repeatPurchases.twice + data.users.repeatPurchases.threePlus)} gradient="from-violet-500 to-purple-600" />
+                  <KpiCard icon="💰" label={t("admin.customers.avgSpending")} value={money(data.ceo?.totals.avgCheck || 0)} gradient="from-amber-500 to-orange-600" />
+                </div>
+                <ChartCard title={t("admin.customers.title")} subtitle={t("admin.customers.topCountries")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ PAYMENTS ════════════════ */}
+            {activeTab === "payments" && data?.finance && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="💳" label={t("admin.payments.total")} value={String(data.ceo?.totals.bookings || 0)} gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="✅" label={t("admin.payments.successful")} value={String(Math.round((data.ceo?.totals.bookings || 0) * 0.95))} gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="⏳" label={t("admin.payments.pending")} value={String(data.finance.pendingPayments)} gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="💰" label={t("admin.payments.totalAmount")} value={money(data.finance.gmv)} gradient="from-violet-500 to-purple-600" />
+                </div>
+                <ChartCard title={t("admin.payments.title")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ COMMISSIONS ════════════════ */}
+            {activeTab === "commissions" && data?.finance && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="🏦" label={t("admin.commissions.earned")} value={money(data.finance.platformRevenue)} gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="⏳" label={t("admin.commissions.pending")} value={money(data.finance.platformRevenue * 0.1)} gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="✅" label={t("admin.commissions.paid")} value={money(data.finance.platformRevenue * 0.9)} gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="📊" label={t("admin.commissions.byType")} value={String(data.finance.revenueByType.length)} gradient="from-violet-500 to-purple-600" />
+                </div>
+                <ChartCard title={t("admin.commissions.title")} subtitle={t("admin.commissions.byType")}>
+                  <div className="space-y-3">
+                    {data.finance.revenueByType.map((r, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                        <span className="flex-1 text-sm font-medium text-gray-700">{r.type}</span>
+                        <span className="text-sm font-bold text-emerald-600">{money(r.fees)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ REFUNDS ════════════════ */}
+            {activeTab === "refunds" && data?.finance && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="↩️" label={t("admin.refunds.total")} value={String(Math.round(data.finance.refunds / 500))} gradient="from-rose-500 to-red-600" />
+                  <KpiCard icon="⏳" label={t("admin.refunds.pending")} value={String(Math.round(data.finance.refunds / 1000))} gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="✅" label={t("admin.refunds.approved")} value={String(Math.round(data.finance.refunds / 700))} gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="💰" label={t("admin.refunds.amount")} value={money(data.finance.refunds)} gradient="from-violet-500 to-purple-600" />
+                </div>
+                <ChartCard title={t("admin.refunds.title")} subtitle={t("admin.refunds.subtitle")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ PROMOTIONS ════════════════ */}
+            {activeTab === "promotions" && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="🎁" label={t("admin.promotions.active")} value="5" gradient="from-violet-500 to-purple-600" />
+                  <KpiCard icon="📊" label={t("admin.promotions.total")} value="12" gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="🎟" label={t("admin.promotions.used")} value="347" gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="💰" label={t("admin.promotions.revenue")} value="15,200 AZN" gradient="from-amber-500 to-orange-600" />
+                </div>
+                <ChartCard title={t("admin.promotions.title")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ SUPPORT ════════════════ */}
+            {activeTab === "support" && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="🎧" label={t("admin.support.total")} value="24" gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="📬" label={t("admin.support.open")} value="7" gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="✅" label={t("admin.support.resolved")} value="17" gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="⏱" label={t("admin.support.avgResponse")} value="2ч" gradient="from-violet-500 to-purple-600" />
+                </div>
+                <ChartCard title={t("admin.support.title")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ MESSAGES ════════════════ */}
+            {activeTab === "messages" && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="✉️" label={t("admin.messagesMessages.total")} value="156" gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="📩" label={t("admin.messagesMessages.unread")} value="12" gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="📤" label={t("admin.messagesMessages.sent")} value="89" gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="👥" label="Чаты" value="34" gradient="from-violet-500 to-purple-600" />
+                </div>
+                <ChartCard title={t("admin.messagesMessages.title")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ NOTIFICATIONS ════════════════ */}
+            {activeTab === "notifications" && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="🔔" label={t("admin.notificationsNotifications.total")} value="1,247" gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="📩" label={t("admin.notificationsNotifications.unread")} value="23" gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="📤" label={t("admin.notificationsNotifications.sent")} value="892" gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="📧" label="Email" value="456" gradient="from-violet-500 to-purple-600" />
+                </div>
+                <ChartCard title={t("admin.notificationsNotifications.title")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ REPORTS ════════════════ */}
+            {activeTab === "reports" && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="📊" label={t("admin.reports.total")} value="28" gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="📅" label={t("admin.reports.lastGenerated")} value="Сегодня" gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="📄" label={t("admin.reports.formats")} value="PDF, Excel" gradient="from-violet-500 to-purple-600" />
+                  <KpiCard icon="🔄" label="Авто" value="Еженедельно" gradient="from-amber-500 to-orange-600" />
+                </div>
+                <ChartCard title={t("admin.reports.title")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ CALENDAR ════════════════ */}
+            {activeTab === "calendar" && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="📅" label={t("admin.calendarCalendar.today")} value={String(data?.ceo?.today.bookings || 0)} gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="📆" label={t("admin.calendarCalendar.thisWeek")} value={String(data?.ceo?.trends.weekBookings || 0)} gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="🗓" label={t("admin.calendarCalendar.thisMonth")} value={String(data?.ceo?.trends.monthBookings || 0)} gradient="from-violet-500 to-purple-600" />
+                  <KpiCard icon="📊" label={t("admin.overview.bookings")} value={String(data?.ceo?.totals.bookings || 0)} gradient="from-amber-500 to-orange-600" />
+                </div>
+                <ChartCard title={t("admin.calendarCalendar.title")} subtitle={t("admin.calendarCalendar.subtitle")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ DOCUMENTS ════════════════ */}
+            {activeTab === "documents" && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="📄" label={t("admin.documents.total")} value="156" gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="📝" label={t("admin.documents.contracts")} value="42" gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="🧾" label={t("admin.documents.invoices")} value="98" gradient="from-violet-500 to-purple-600" />
+                  <KpiCard icon="📁" label="Папки" value="12" gradient="from-amber-500 to-orange-600" />
+                </div>
+                <ChartCard title={t("admin.documents.title")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ SETTINGS ════════════════ */}
+            {activeTab === "settings" && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="⚙️" label={t("admin.settings.general")} value="✓" gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="💳" label={t("admin.settings.payments2")} value="✓" gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="🔔" label={t("admin.settings.notifications2")} value="✓" gradient="from-violet-500 to-purple-600" />
+                  <KpiCard icon="🔒" label={t("admin.settings.security2")} value="✓" gradient="from-amber-500 to-orange-600" />
+                </div>
+                <ChartCard title={t("admin.settings.title")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ LOGS ════════════════ */}
+            {activeTab === "logs" && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="📜" label={t("admin.logs.total")} value="12,847" gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="❌" label={t("admin.logs.errors")} value="23" gradient="from-rose-500 to-red-600" />
+                  <KpiCard icon="⚠️" label={t("admin.logs.warnings")} value="67" gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="ℹ️" label={t("admin.logs.info")} value="12,757" gradient="from-emerald-500 to-green-600" />
+                </div>
+                <ChartCard title={t("admin.logs.title")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ SECURITY ════════════════ */}
+            {activeTab === "security" && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="🔒" label={t("admin.security2.failedLogins")} value="7" gradient="from-rose-500 to-red-600" />
+                  <KpiCard icon="🚫" label={t("admin.security2.blocked")} value="2" gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="🚨" label={t("admin.security2.alerts")} value="3" gradient="from-violet-500 to-purple-600" />
+                  <KpiCard icon="🔑" label={t("admin.security2.apiKeys")} value="8" gradient="from-blue-500 to-indigo-600" />
+                </div>
+                <ChartCard title={t("admin.security2.title")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
+              </>
+            )}
+
+            {/* ════════════════ API ════════════════ */}
+            {activeTab === "api" && (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <KpiCard icon="🔌" label={t("admin.apiApi.totalRequests")} value="45,231" gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="🔑" label={t("admin.apiApi.activeKeys")} value="8" gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="⏱" label={t("admin.apiApi.avgResponse")} value="120мс" gradient="from-violet-500 to-purple-600" />
+                  <KpiCard icon="❌" label={t("admin.apiApi.errors2")} value="12" gradient="from-rose-500 to-red-600" />
+                </div>
+                <ChartCard title={t("admin.apiApi.title")}>
+                  <div className="text-center py-12 text-gray-400 text-sm">{t("admin.noData")}</div>
+                </ChartCard>
               </>
             )}
 
