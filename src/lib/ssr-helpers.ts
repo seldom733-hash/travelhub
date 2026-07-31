@@ -24,7 +24,7 @@ function mapRawToService(
   return {
     id: s.id as string,
     name: s.title as string,
-    image: (s.images as string[])?.[0] || defaultImages[serviceType] || defaultImages.TOUR,
+    image: (typeof s.images === "string" ? s.images.split(",").filter(Boolean) : s.images as string[])?.[0] || defaultImages[serviceType] || defaultImages.TOUR,
     city: s.city as string,
     country: s.country as string,
     flag: flagMap[s.countryCode as string] || "🌍",
