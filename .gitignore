@@ -42,8 +42,8 @@ nul
 # local database & preview logs
 .freebuff/
 
-# prisma migrations (generated)
-prisma/migrations/
+# prisma migration lock (generated)
+prisma/migrations/migration_lock.toml
 
 # local database
 prisma/dev.db
