@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, ReactNode } from "react";
+import { useI18n } from "@/lib/i18n-context";
 
 interface AdminTopNavProps {
   title: string;
@@ -18,6 +19,7 @@ export default function AdminTopNav({
 }: AdminTopNavProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date());
+  const { t } = useI18n();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -38,7 +40,7 @@ export default function AdminTopNav({
           <div className="relative w-full">
             <input
               type="text"
-              placeholder="Поиск..."
+              placeholder={t("admin.search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-10 pl-10 pr-4 rounded-xl bg-gray-50 border border-gray-200 text-sm focus:border-blue-400 focus:ring-0 focus:bg-white outline-none transition-all"
@@ -56,7 +58,7 @@ export default function AdminTopNav({
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <span className={`inline-block w-2 h-2 rounded-full ${isRefreshing ? "bg-emerald-400 animate-pulse" : "bg-emerald-400"}`} />
-                {isRefreshing ? "Обновление..." : currentTime.toLocaleTimeString("ru-RU")}
+                {isRefreshing ? t("admin.updating") : currentTime.toLocaleTimeString("ru-RU")}
               </div>
               {onToggleAutoRefresh && (
                 <button
@@ -65,12 +67,12 @@ export default function AdminTopNav({
                     autoRefresh ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                   }`}
                 >
-                  {autoRefresh ? "⏸ Авто" : "▶ Авто"}
+                  {autoRefresh ? `⏸ ${t("admin.autoRefresh")}` : `▶ ${t("admin.autoRefresh")}`}
                 </button>
               )}
               {!autoRefresh && onRefresh && (
                 <button onClick={onRefresh} className="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium transition-all">
-                  🔄 Обновить
+                  {t("admin.refresh")}
                 </button>
               )}
             </div>

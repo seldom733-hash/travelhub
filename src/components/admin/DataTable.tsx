@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useState, useMemo } from "react";
+import { useI18n } from "@/lib/i18n-context";
 
 interface Column<T> {
   key: string;
@@ -21,8 +22,9 @@ interface DataTableProps<T> {
 }
 
 export default function DataTable<T extends Record<string, any>>({
-  columns, data, loading, emptyMessage = "Нет данных", onRowClick, searchPlaceholder, pageSize = 20
+  columns, data, loading, emptyMessage, onRowClick, searchPlaceholder, pageSize = 20
 }: DataTableProps<T>) {
+  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -75,12 +77,12 @@ export default function DataTable<T extends Record<string, any>>({
       {loading ? (
         <div className="text-center py-12">
           <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-gray-500">Загрузка...</p>
+          <p className="text-sm text-gray-500">{t("admin.dataTable.loading")}</p>
         </div>
       ) : pagedData.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-4xl mb-3">📭</div>
-          <p className="text-sm text-gray-500">{emptyMessage}</p>
+          <p className="text-sm text-gray-500">{emptyMessage || t("admin.dataTable.noData")}</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -124,7 +126,7 @@ export default function DataTable<T extends Record<string, any>>({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-400">
-            {filteredData.length} записей • Страница {page + 1} из {totalPages}
+            {filteredData.length} {t("admin.dataTable.records")} • {t("admin.dataTable.page")} {page + 1} {t("admin.dataTable.of")} {totalPages}
           </span>
           <div className="flex items-center gap-1">
             <button
@@ -132,7 +134,7 @@ export default function DataTable<T extends Record<string, any>>({
               disabled={page === 0}
               className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 transition-all"
             >
-              ← Назад
+              {t("admin.dataTable.back")}
             </button>
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               const p = page < 3 ? i : page - 2 + i;
@@ -154,7 +156,7 @@ export default function DataTable<T extends Record<string, any>>({
               disabled={page >= totalPages - 1}
               className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 transition-all"
             >
-              Далее →
+              {t("admin.dataTable.next")}
             </button>
           </div>
         </div>

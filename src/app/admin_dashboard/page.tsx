@@ -34,12 +34,7 @@ interface ExtendedAnalytics { ceo?: CeoData; users?: UserData; funnel?: FunnelDa
 
 const fmt = (n: number) => n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e3 ? (n / 1e3).toFixed(1) + "K" : n.toLocaleString();
 const money = (n: number) => n.toLocaleString("az-AZ") + " AZN";
-const pct = (a: number, b: number) => b > 0 ? Math.round((a / b) * 100) : 0;
-
 const CHART_COLORS = ["#3b82f6", "#6366f1", "#8b5cf6", "#ec4899", "#f43f5e", "#f97316", "#eab308", "#22c55e", "#14b8a6", "#06b6d4"];
-const GRADIENT_BLUE = ["#3b82f6", "#2563eb"];
-const GRADIENT_GREEN = ["#22c55e", "#16a34a"];
-const GRADIENT_PURPLE = ["#8b5cf6", "#7c3aed"];
 
 function AdminInner() {
   const searchParams = useSearchParams();
@@ -169,7 +164,7 @@ function AdminInner() {
       <div className="text-center">
         <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center text-white text-2xl font-bold shadow-2xl shadow-blue-500/30 mx-auto mb-4 animate-pulse">T</div>
         <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-sm text-gray-500 font-medium">Загрузка дашборда...</p>
+        <p className="text-sm text-gray-500 font-medium">{t("admin.loading")}</p>
       </div>
     </div>
   );
@@ -178,10 +173,10 @@ function AdminInner() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30 flex items-center justify-center">
       <div className="text-center bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
         <div className="text-5xl mb-4">🛡</div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Ошибка загрузки</h2>
-        <p className="text-sm text-gray-500 mb-4">{error || "Нет данных"}</p>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">{t("admin.loadError")}</h2>
+        <p className="text-sm text-gray-500 mb-4">{error || t("admin.noData")}</p>
         <button onClick={() => { setError(null); setIsLoading(true); fetchData(); }} className="px-6 py-2.5 bg-blue-500 text-white rounded-xl text-sm font-medium hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/25">
-          Повторить
+          {t("admin.retry")}
         </button>
       </div>
     </div>
@@ -189,19 +184,19 @@ function AdminInner() {
 
   const ceo = data.ceo;
   const sidebarItems = [
-    { icon: "📊", label: "Обзор", id: "overview" },
-    { icon: "📈", label: "Аналитика", id: "analytics", adminOnly: true },
-    { icon: "📋", label: "Бронирования", id: "bookings", adminOnly: true },
-    { icon: "🏨", label: "Услуги", id: "services", adminOnly: true },
-    { icon: "🤝", label: "Партнёры", id: "partners", adminOnly: true },
-    { icon: "👥", label: "Пользователи", id: "users", adminOnly: true },
-    { icon: "💰", label: "Финансы", id: "finance", adminOnly: true },
-    { icon: "📣", label: "Маркетинг", id: "marketing", adminOnly: true },
-    { icon: "🛡", label: "Модерация", id: "moderation" },
-    { icon: "👤", label: "Управление", id: "users_mgmt", adminOnly: true },
-    { icon: "📋", label: "Аудит", id: "audit", adminOnly: true },
-    { icon: "⚙️", label: "Система", id: "system", adminOnly: true },
-    { icon: "🤖", label: "AI Центр", id: "ai", adminOnly: true },
+    { icon: "📊", label: t("admin.sidebar.overview"), id: "overview" },
+    { icon: "📈", label: t("admin.sidebar.analytics"), id: "analytics", adminOnly: true },
+    { icon: "📋", label: t("admin.sidebar.bookings"), id: "bookings", adminOnly: true },
+    { icon: "🏨", label: t("admin.sidebar.services"), id: "services", adminOnly: true },
+    { icon: "🤝", label: t("admin.sidebar.partners"), id: "partners", adminOnly: true },
+    { icon: "👥", label: t("admin.sidebar.users"), id: "users", adminOnly: true },
+    { icon: "💰", label: t("admin.sidebar.finance"), id: "finance", adminOnly: true },
+    { icon: "📣", label: t("admin.sidebar.marketing"), id: "marketing", adminOnly: true },
+    { icon: "🛡", label: t("admin.sidebar.moderation"), id: "moderation" },
+    { icon: "👤", label: t("admin.sidebar.usersMgmt"), id: "users_mgmt", adminOnly: true },
+    { icon: "📋", label: t("admin.sidebar.audit"), id: "audit", adminOnly: true },
+    { icon: "⚙️", label: t("admin.sidebar.system"), id: "system", adminOnly: true },
+    { icon: "🤖", label: t("admin.sidebar.ai"), id: "ai", adminOnly: true },
   ].filter(item => !isModerator || !item.adminOnly);
 
   return (
@@ -229,18 +224,18 @@ function AdminInner() {
               <>
                 {/* KPI Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
-                  <KpiCard icon="💰" label="Продажи сегодня" value={money(ceo.today.sales)} gradient="from-emerald-500 to-green-600" />
-                  <KpiCard icon="🛒" label="Бронирований" value={String(ceo.today.bookings)} gradient="from-blue-500 to-indigo-600" />
-                  <KpiCard icon="🏦" label="Комиссия" value={money(ceo.today.commission)} gradient="from-violet-500 to-purple-600" />
-                  <KpiCard icon="👤" label="Новых пользователей" value={String(ceo.today.newUsers)} gradient="from-cyan-500 to-blue-600" />
-                  <KpiCard icon="🤝" label="Новых партнёров" value={String(ceo.today.newPartners)} gradient="from-amber-500 to-orange-600" />
-                  <KpiCard icon="❌" label="Отмены" value={String(ceo.today.cancellations)} gradient="from-rose-500 to-red-600" />
-                  <KpiCard icon="📈" label="Средний чек" value={money(ceo.totals.avgCheck)} gradient="from-indigo-500 to-blue-600" />
+                  <KpiCard icon="💰" label={t("admin.overview.salesToday")} value={money(ceo.today.sales)} gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="🛒" label={t("admin.overview.bookings")} value={String(ceo.today.bookings)} gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="🏦" label={t("admin.overview.commission")} value={money(ceo.today.commission)} gradient="from-violet-500 to-purple-600" />
+                  <KpiCard icon="👤" label={t("admin.overview.newUsers")} value={String(ceo.today.newUsers)} gradient="from-cyan-500 to-blue-600" />
+                  <KpiCard icon="🤝" label={t("admin.overview.newPartners")} value={String(ceo.today.newPartners)} gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="❌" label={t("admin.overview.cancellations")} value={String(ceo.today.cancellations)} gradient="from-rose-500 to-red-600" />
+                  <KpiCard icon="📈" label={t("admin.overview.avgCheck")} value={money(ceo.totals.avgCheck)} gradient="from-indigo-500 to-blue-600" />
                 </div>
 
                 {/* Revenue Chart + Stats */}
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                  <ChartCard title="Динамика выручки" subtitle="Последние 14 дней" className="xl:col-span-2">
+                  <ChartCard title={t("admin.overview.revenueDynamics")} subtitle={t("admin.overview.last14Days")} className="xl:col-span-2">
                     {ceo.bookingsByDay.length > 0 ? (
                       <ResponsiveContainer width="100%" height={300}>
                         <AreaChart data={[...ceo.bookingsByDay].reverse()}>
@@ -253,24 +248,24 @@ function AdminInner() {
                           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                           <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#94a3b8" }} tickFormatter={(v) => v.slice(5)} />
                           <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} tickFormatter={(v) => fmt(v)} />
-                          <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }} formatter={(value) => [money(Number(value)), "Выручка"]} labelFormatter={(l) => `Дата: ${l}`} />
+                          <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }} formatter={(value) => [money(Number(value)), t("admin.overview.revenue")]} labelFormatter={(l) => `${t("admin.common.dateFormat")} ${l}`} />
                           <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevenue)" />
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-[300px] flex items-center justify-center text-gray-400 text-sm">Нет данных за период</div>
+                      <div className="h-[300px] flex items-center justify-center text-gray-400 text-sm">{t("admin.overview.noDataPeriod")}</div>
                     )}
                   </ChartCard>
 
-                  <ChartCard title="Сводка">
+                  <ChartCard title={t("admin.overview.summary")}>
                     <div className="space-y-3">
                       {[
                         { label: "GMV", value: money(ceo.totals.gmv), color: "text-emerald-600" },
-                        { label: "Доход платформы", value: money(ceo.totals.platformRevenue), color: "text-blue-600" },
-                        { label: "Всего бронирований", value: String(ceo.totals.bookings), color: "" },
-                        { label: "Пользователей", value: fmt(ceo.totals.users), color: "" },
-                        { label: "Партнёров", value: String(ceo.totals.partners), color: "" },
-                        { label: "Услуг", value: String(ceo.totals.services), color: "" },
+                        { label: t("admin.overview.platformRevenue"), value: money(ceo.totals.platformRevenue), color: "text-blue-600" },
+                        { label: t("admin.overview.totalBookings"), value: String(ceo.totals.bookings), color: "" },
+                        { label: t("admin.overview.totalUsers"), value: fmt(ceo.totals.users), color: "" },
+                        { label: t("admin.overview.totalPartners"), value: String(ceo.totals.partners), color: "" },
+                        { label: t("admin.overview.totalServices"), value: String(ceo.totals.services), color: "" },
                       ].map(item => (
                         <div key={item.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                           <span className="text-sm text-gray-500">{item.label}</span>
@@ -283,7 +278,7 @@ function AdminInner() {
 
                 {/* Bookings by Day Chart */}
                 {ceo.bookingsByDay.length > 0 && (
-                  <ChartCard title="Бронирования по дням" subtitle="Количество бронирований">
+                  <ChartCard title={t("admin.overview.bookingsByDay")} subtitle={t("admin.overview.bookingsCount")}>
                     <ResponsiveContainer width="100%" height={200}>
                       <BarChart data={[...ceo.bookingsByDay].reverse()}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -298,18 +293,18 @@ function AdminInner() {
 
                 {/* Weekly + Monthly Trends */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ChartCard title="Неделя" subtitle="Недельные показатели">
+                  <ChartCard title={t("admin.overview.week")} subtitle={t("admin.overview.weekMetrics")}>
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center"><span className="text-sm text-gray-500">Бронирования</span><span className="text-lg font-bold">{ceo.trends.weekBookings}</span></div>
+                      <div className="flex justify-between items-center"><span className="text-sm text-gray-500">{t("admin.overview.bookings")}</span><span className="text-lg font-bold">{ceo.trends.weekBookings}</span></div>
                       <div className="w-full bg-gray-100 rounded-full h-2"><div className="bg-blue-500 rounded-full h-2 transition-all" style={{ width: `${Math.min(100, (ceo.trends.weekBookings / Math.max(ceo.totals.bookings, 1)) * 100)}%` }} /></div>
-                      <div className="flex justify-between items-center"><span className="text-sm text-gray-500">Выручка</span><span className="text-lg font-bold text-emerald-600">{money(ceo.trends.weekRevenue)}</span></div>
+                      <div className="flex justify-between items-center"><span className="text-sm text-gray-500">{t("admin.overview.revenue")}</span><span className="text-lg font-bold text-emerald-600">{money(ceo.trends.weekRevenue)}</span></div>
                     </div>
                   </ChartCard>
-                  <ChartCard title="Месяц" subtitle="Месячные показатели">
+                  <ChartCard title={t("admin.overview.month")} subtitle={t("admin.overview.monthMetrics")}>
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center"><span className="text-sm text-gray-500">Бронирования</span><span className="text-lg font-bold">{ceo.trends.monthBookings}</span></div>
+                      <div className="flex justify-between items-center"><span className="text-sm text-gray-500">{t("admin.overview.bookings")}</span><span className="text-lg font-bold">{ceo.trends.monthBookings}</span></div>
                       <div className="w-full bg-gray-100 rounded-full h-2"><div className="bg-violet-500 rounded-full h-2 transition-all" style={{ width: `${Math.min(100, (ceo.trends.monthBookings / Math.max(ceo.totals.bookings, 1)) * 100)}%` }} /></div>
-                      <div className="flex justify-between items-center"><span className="text-sm text-gray-500">Выручка</span><span className="text-lg font-bold text-emerald-600">{money(ceo.trends.monthRevenue)}</span></div>
+                      <div className="flex justify-between items-center"><span className="text-sm text-gray-500">{t("admin.overview.revenue")}</span><span className="text-lg font-bold text-emerald-600">{money(ceo.trends.monthRevenue)}</span></div>
                     </div>
                   </ChartCard>
                 </div>
@@ -327,7 +322,7 @@ function AdminInner() {
 
                 {data.users && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <ChartCard title="Пользователи по ролям">
+                    <ChartCard title={t("admin.users.byRole")}>
                       <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
                           <Pie data={data.users.byRole.map(r => ({ name: r.role, value: r.count }))} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey="value" label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}>
@@ -337,7 +332,7 @@ function AdminInner() {
                         </PieChart>
                       </ResponsiveContainer>
                     </ChartCard>
-                    <ChartCard title="Новые пользователи по дням">
+                    <ChartCard title={t("admin.users.newByDay")}>
                       <ResponsiveContainer width="100%" height={250}>
                         <AreaChart data={[...data.users.newByDay].reverse()}>
                           <defs><linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} /><stop offset="95%" stopColor="#22c55e" stopOpacity={0} /></linearGradient></defs>
@@ -355,7 +350,7 @@ function AdminInner() {
                 {/* Search Analytics */}
                 {data.search && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <ChartCard title="Топ поисковых запросов">
+                    <ChartCard title={t("admin.analytics.topQueries")}>
                       <div className="space-y-2">
                         {data.search.topQueries.slice(0, 8).map((q, i) => (
                           <div key={i} className="flex items-center gap-3 p-2.5 bg-gray-50/80 rounded-xl hover:bg-gray-100/80 transition-colors">
@@ -366,7 +361,7 @@ function AdminInner() {
                         ))}
                       </div>
                     </ChartCard>
-                    <ChartCard title="Неэффективные запросы">
+                    <ChartCard title={t("admin.analytics.ineffectiveQueries")}>
                       {data.search.emptySearches.length > 0 ? (
                         <div className="space-y-2">
                           {data.search.emptySearches.slice(0, 8).map((q, i) => (
@@ -377,20 +372,20 @@ function AdminInner() {
                             </div>
                           ))}
                         </div>
-                      ) : <p className="text-sm text-gray-400 text-center py-8">Все запросы эффективны ✅</p>}
+                      ) : <p className="text-sm text-gray-400 text-center py-8">{t("admin.analytics.allEffective")} ✅</p>}
                     </ChartCard>
                   </div>
                 )}
 
                 {/* Services by Type */}
                 {data.services && data.services.length > 0 && (
-                  <ChartCard title="Доход по типам услуг" subtitle="Общая выручка по категориям">
+                  <ChartCard title={t("admin.analytics.revenueByType")} subtitle={t("admin.analytics.revenueByTypeSub")}>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={data.services.map(s => ({ name: s.type, revenue: s.revenue, bookings: s.totalBookings, commission: s.commission }))} layout="vertical">
                         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                         <XAxis type="number" tick={{ fontSize: 11, fill: "#94a3b8" }} tickFormatter={(v) => fmt(v)} />
                         <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "#94a3b8" }} width={100} />
-                        <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0" }} formatter={(value) => [money(Number(value)), "Выручка"]} />
+                        <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0" }} formatter={(value) => [money(Number(value)), t("admin.overview.revenue")]} />
                         <Bar dataKey="revenue" fill="#3b82f6" radius={[0, 6, 6, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -399,7 +394,7 @@ function AdminInner() {
 
                 {/* Partners Top */}
                 {data.partners && (
-                  <ChartCard title="Топ партнёров по выручке">
+                  <ChartCard title={t("admin.analytics.topPartners")}>
                     <div className="space-y-2">
                       {data.partners.topByRevenue.slice(0, 8).map((p, i) => (
                         <div key={p.id} className="flex items-center gap-3 p-3 bg-gray-50/80 rounded-xl hover:bg-gray-100/80 transition-colors">
@@ -410,7 +405,7 @@ function AdminInner() {
                           </div>
                           <div className="text-right">
                             <div className="text-sm font-bold text-emerald-600">{money(p.revenue)}</div>
-                            <div className="text-xs text-gray-400">{p.completedBookings} заказов</div>
+                            <div className="text-xs text-gray-400">{p.completedBookings} {t("admin.analytics.orders")}</div>
                           </div>
                         </div>
                       ))}
@@ -420,7 +415,7 @@ function AdminInner() {
 
                 {/* Funnel */}
                 {data.funnel && (
-                  <ChartCard title="Воронка конверсии" subtitle="От поиска до повторной покупки">
+                  <ChartCard title={t("admin.analytics.funnel")} subtitle={t("admin.analytics.funnelSub")}>
                     <div className="space-y-3">
                       {data.funnel.steps.map((s, i) => {
                         const maxC = Math.max(...data.funnel!.steps.map(x => x.count), 1);
@@ -444,7 +439,7 @@ function AdminInner() {
                 {/* Finance */}
                 {data.finance && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <ChartCard title="Финансы по типам">
+                    <ChartCard title={t("admin.finance.byType")}>
                       <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
                           <Pie data={data.finance.revenueByType.map(r => ({ name: r.type, value: r.revenue }))} cx="50%" cy="50%" outerRadius={100} paddingAngle={2} dataKey="value" label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}>
@@ -454,7 +449,7 @@ function AdminInner() {
                         </PieChart>
                       </ResponsiveContainer>
                     </ChartCard>
-                    <ChartCard title="Выручка по дням">
+                    <ChartCard title={t("admin.finance.revenueByDay")}>
                       <ResponsiveContainer width="100%" height={250}>
                         <LineChart data={[...data.finance.revenueByDay].reverse()}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -471,11 +466,11 @@ function AdminInner() {
 
                 {/* Marketing */}
                 {data.marketing && (
-                  <ChartCard title="Маркетинг: каналы">
+                  <ChartCard title={t("admin.analytics.marketingChannels")}>
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead><tr className="border-b border-gray-100">
-                          {["Канал", "Визиты", "Заказы", "Доход", "Расходы", "ROI", "CAC"].map(h => (
+                          {[t("admin.marketing.channel"), t("admin.marketing.visits"), t("admin.marketing.orders"), t("admin.marketing.revenue"), t("admin.marketing.costs"), "ROI", "CAC"].map(h => (
                             <th key={h} className="text-left text-xs font-semibold text-gray-400 uppercase pb-3 px-3">{h}</th>
                           ))}
                         </tr></thead>
@@ -500,9 +495,9 @@ function AdminInner() {
                 {/* Technical */}
                 {data.technical && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <KpiCard icon="👁" label="Всего просмотров" value={fmt(data.technical.totalViews)} gradient="from-blue-500 to-cyan-600" />
-                    <KpiCard icon="📅" label="Сегодня просмотров" value={fmt(data.technical.todayViews)} gradient="from-emerald-500 to-green-600" />
-                    <KpiCard icon="⏱" label="Среднее время" value={data.technical.avgDuration + "с"} gradient="from-violet-500 to-purple-600" />
+                    <KpiCard icon="👁" label={t("admin.analytics.totalViews")} value={fmt(data.technical.totalViews)} gradient="from-blue-500 to-cyan-600" />
+                    <KpiCard icon="📅" label={t("admin.analytics.todayViews")} value={fmt(data.technical.todayViews)} gradient="from-emerald-500 to-green-600" />
+                    <KpiCard icon="⏱" label={t("admin.analytics.avgTime")} value={data.technical.avgDuration + "с"} gradient="from-violet-500 to-purple-600" />
                   </div>
                 )}
               </>
@@ -515,10 +510,10 @@ function AdminInner() {
                   <KpiCard icon="📱" label="DAU" value={String(data.users.dau)} gradient="from-blue-500 to-cyan-600" />
                   <KpiCard icon="📅" label="WAU" value={String(data.users.wau)} gradient="from-violet-500 to-purple-600" />
                   <KpiCard icon="📊" label="MAU" value={String(data.users.mau)} gradient="from-indigo-500 to-blue-600" />
-                  <KpiCard icon="👥" label="Всего" value={fmt(data.users.total)} gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="👥" label={t("admin.users.total")} value={fmt(data.users.total)} gradient="from-emerald-500 to-green-600" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ChartCard title="Пользователи по ролям">
+                  <ChartCard title={t("admin.users.byRole")}>
                     <ResponsiveContainer width="100%" height={280}>
                       <PieChart>
                         <Pie data={data.users.byRole.map(r => ({ name: r.role, value: r.count }))} cx="50%" cy="50%" innerRadius={60} outerRadius={110} paddingAngle={4} dataKey="value" label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}>
@@ -528,7 +523,7 @@ function AdminInner() {
                       </PieChart>
                     </ResponsiveContainer>
                   </ChartCard>
-                  <ChartCard title="Новые пользователи по дням">
+                  <ChartCard title={t("admin.users.newByDay")}>
                     <ResponsiveContainer width="100%" height={280}>
                       <AreaChart data={[...data.users.newByDay].reverse()}>
                         <defs><linearGradient id="colorUsersTab" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} /><stop offset="95%" stopColor="#22c55e" stopOpacity={0} /></linearGradient></defs>
@@ -541,11 +536,11 @@ function AdminInner() {
                     </ResponsiveContainer>
                   </ChartCard>
                 </div>
-                <ChartCard title="Повторные покупки">
+                <ChartCard title={t("admin.users.repeatPurchases")}>
                   <div className="grid grid-cols-3 gap-4">
-                    {[{ label: "1 раз", value: data.users.repeatPurchases.once, color: "from-blue-500 to-cyan-600" },
-                      { label: "2 раза", value: data.users.repeatPurchases.twice, color: "from-violet-500 to-purple-600" },
-                      { label: "3+ раз", value: data.users.repeatPurchases.threePlus, color: "from-emerald-500 to-green-600" },
+                    {[{ label: t("admin.users.once"), value: data.users.repeatPurchases.once, color: "from-blue-500 to-cyan-600" },
+                      { label: t("admin.users.twice"), value: data.users.repeatPurchases.twice, color: "from-violet-500 to-purple-600" },
+                      { label: t("admin.users.threePlus"), value: data.users.repeatPurchases.threePlus, color: "from-emerald-500 to-green-600" },
                     ].map(item => (
                       <div key={item.label} className="text-center p-4 bg-gray-50/80 rounded-xl">
                         <div className="text-2xl font-bold text-gray-900">{item.value}</div>
@@ -561,13 +556,13 @@ function AdminInner() {
             {activeTab === "finance" && data?.finance && (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <KpiCard icon="💰" label="GMV" value={money(data.finance.gmv)} gradient="from-emerald-500 to-green-600" />
-                  <KpiCard icon="🏦" label="Доход платформы" value={money(data.finance.platformRevenue)} gradient="from-blue-500 to-indigo-600" />
-                  <KpiCard icon="↩️" label="Возвраты" value={money(data.finance.refunds)} gradient="from-rose-500 to-red-600" />
-                  <KpiCard icon="⏳" label="Ожидают оплаты" value={String(data.finance.pendingPayments)} gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="💰" label={t("admin.bookings.gmv")} value={money(data.finance.gmv)} gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="🏦" label={t("admin.bookings.platformRevenue")} value={money(data.finance.platformRevenue)} gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="↩️" label={t("admin.bookings.refunds")} value={money(data.finance.refunds)} gradient="from-rose-500 to-red-600" />
+                  <KpiCard icon="⏳" label={t("admin.bookings.pendingPayments")} value={String(data.finance.pendingPayments)} gradient="from-amber-500 to-orange-600" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ChartCard title="Финансы по типам">
+                  <ChartCard title={t("admin.finance.byType")}>
                     <ResponsiveContainer width="100%" height={280}>
                       <PieChart>
                         <Pie data={data.finance.revenueByType.map(r => ({ name: r.type, value: r.revenue }))} cx="50%" cy="50%" outerRadius={110} paddingAngle={2} dataKey="value" label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}>
@@ -577,21 +572,20 @@ function AdminInner() {
                       </PieChart>
                     </ResponsiveContainer>
                   </ChartCard>
-                  <ChartCard title="Доход по типам">
+                  <ChartCard title={t("admin.finance.revenueByType")}>
                     <div className="space-y-3">
                       {data.finance.revenueByType.map((r, i) => (
                         <div key={i} className="flex items-center gap-3">
                           <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
                           <span className="flex-1 text-sm font-medium text-gray-700">{r.type}</span>
                           <span className="text-sm font-bold text-gray-900">{money(r.revenue)}</span>
-                          <span className="text-xs text-gray-400">{r.count} заказов</span>
+                          <span className="text-xs text-gray-400">{r.count} {t("admin.analytics.orders")}</span>
                         </div>
                       ))}
                     </div>
                   </ChartCard>
                 </div>
-                {data.finance.revenueByDay.length > 0 && (
-                  <ChartCard title="Выручка по дням" subtitle="Выручка и комиссия">
+                {data.finance.revenueByDay.length > 0 && (                    <ChartCard title={t("admin.finance.revenueByDay")} subtitle={t("admin.finance.revenueAndFees")}>
                     <ResponsiveContainer width="100%" height={350}>
                       <AreaChart data={[...data.finance.revenueByDay].reverse()}>
                         <defs>
@@ -615,17 +609,17 @@ function AdminInner() {
             {activeTab === "marketing" && data?.marketing && (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <KpiCard icon="👁" label="Визиты" value={fmt(data.marketing.totals.totalVisits)} gradient="from-blue-500 to-cyan-600" />
-                  <KpiCard icon="🛒" label="Заказы" value={String(data.marketing.totals.totalBookings)} gradient="from-violet-500 to-purple-600" />
-                  <KpiCard icon="💰" label="Доход" value={money(data.marketing.totals.revenue)} gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="👁" label={t("admin.marketing.visits")} value={fmt(data.marketing.totals.totalVisits)} gradient="from-blue-500 to-cyan-600" />
+                  <KpiCard icon="🛒" label={t("admin.marketing.orders")} value={String(data.marketing.totals.totalBookings)} gradient="from-violet-500 to-purple-600" />
+                  <KpiCard icon="💰" label={t("admin.marketing.revenue")} value={money(data.marketing.totals.revenue)} gradient="from-emerald-500 to-green-600" />
                   <KpiCard icon="📈" label="ROI" value={data.marketing.totals.roi + "%"} gradient="from-amber-500 to-orange-600" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ChartCard title="Маркетинг: каналы">
+                  <ChartCard title={t("admin.analytics.marketingChannels")}>
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead><tr className="border-b border-gray-100">
-                          {["Канал", "Визиты", "Заказы", "Доход", "Расходы", "ROI", "CAC"].map(h => (
+                          {[t("admin.marketing.channel"), t("admin.marketing.visits"), t("admin.marketing.orders"), t("admin.marketing.revenue"), t("admin.marketing.costs"), "ROI", "CAC"].map(h => (
                             <th key={h} className="text-left text-xs font-semibold text-gray-400 uppercase pb-3 px-3">{h}</th>
                           ))}
                         </tr></thead>
@@ -646,7 +640,7 @@ function AdminInner() {
                     </div>
                   </ChartCard>
                   {data.marketing.eventsByDay.length > 0 && (
-                    <ChartCard title="События по дням">
+                    <ChartCard title={t("admin.analytics.eventsByDay")}>
                       <ResponsiveContainer width="100%" height={280}>
                         <AreaChart data={[...data.marketing.eventsByDay].reverse()}>
                           <defs><linearGradient id="colorMktg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} /><stop offset="95%" stopColor="#3b82f6" stopOpacity={0} /></linearGradient></defs>
@@ -654,15 +648,15 @@ function AdminInner() {
                           <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#94a3b8" }} tickFormatter={(v) => v.slice(5)} />
                           <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
                           <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0" }} />
-                          <Area type="monotone" dataKey="visits" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorMktg)" name="Визиты" />
-                          <Area type="monotone" dataKey="bookings" stroke="#22c55e" strokeWidth={2} fillOpacity={0.5} fill="url(#colorMktg)" name="Заказы" />
+                          <Area type="monotone" dataKey="visits" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorMktg)" name={t("admin.marketing.visits")} />
+                          <Area type="monotone" dataKey="bookings" stroke="#22c55e" strokeWidth={2} fillOpacity={0.5} fill="url(#colorMktg)" name={t("admin.marketing.orders")} />
                         </AreaChart>
                       </ResponsiveContainer>
                     </ChartCard>
                   )}
                 </div>
                 {data.marketing.campaigns.length > 0 && (
-                  <ChartCard title="Кампании">
+                  <ChartCard title={t("admin.marketing.campaigns")}>
                     <div className="space-y-2">
                       {data.marketing.campaigns.slice(0, 10).map((c, i) => (
                         <div key={i} className="flex items-center gap-3 p-2.5 bg-gray-50/80 rounded-xl">
@@ -684,13 +678,12 @@ function AdminInner() {
             {activeTab === "bookings" && data?.finance && (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <KpiCard icon="💰" label="GMV" value={money(data.finance.gmv)} gradient="from-emerald-500 to-green-600" />
-                  <KpiCard icon="🏦" label="Доход платформы" value={money(data.finance.platformRevenue)} gradient="from-blue-500 to-indigo-600" />
-                  <KpiCard icon="↩️" label="Возвраты" value={money(data.finance.refunds)} gradient="from-rose-500 to-red-600" />
-                  <KpiCard icon="⏳" label="Ожидают оплаты" value={String(data.finance.pendingPayments)} gradient="from-amber-500 to-orange-600" />
+                  <KpiCard icon="💰" label={t("admin.bookings.gmv")} value={money(data.finance.gmv)} gradient="from-emerald-500 to-green-600" />
+                  <KpiCard icon="🏦" label={t("admin.bookings.platformRevenue")} value={money(data.finance.platformRevenue)} gradient="from-blue-500 to-indigo-600" />
+                  <KpiCard icon="↩️" label={t("admin.bookings.refunds")} value={money(data.finance.refunds)} gradient="from-rose-500 to-red-600" />
+                  <KpiCard icon="⏳" label={t("admin.bookings.pendingPayments")} value={String(data.finance.pendingPayments)} gradient="from-amber-500 to-orange-600" />
                 </div>
-                {data.finance.revenueByDay.length > 0 && (
-                  <ChartCard title="Выручка по дням" subtitle="Выручка и комиссия">
+                {data.finance.revenueByDay.length > 0 && (                    <ChartCard title={t("admin.finance.revenueByDay")} subtitle={t("admin.finance.revenueAndFees")}>
                     <ResponsiveContainer width="100%" height={350}>
                       <AreaChart data={[...data.finance.revenueByDay].reverse()}>
                         <defs>
@@ -719,17 +712,17 @@ function AdminInner() {
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-blue-500/20">{s.type[0]}</div>
                       <div>
                         <div className="text-sm font-bold text-gray-900">{s.type}</div>
-                        <div className="text-xs text-gray-400">{s.count} объявлений</div>
+                        <div className="text-xs text-gray-400">{s.count} {t("admin.services.listings")}</div>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       {[
-                        { l: "Цена", v: money(s.avgPrice) },
-                        { l: "Заказов", v: String(s.totalBookings) },
-                        { l: "Доход", v: money(s.revenue) },
-                        { l: "Комиссия", v: money(s.commission) },
-                        { l: "Конверсия", v: s.conversion + "%" },
-                        { l: "Рейтинг", v: "⭐ " + s.avgRating },
+                        { l: t("admin.services.price"), v: money(s.avgPrice) },
+                        { l: t("admin.services.orders"), v: String(s.totalBookings) },
+                        { l: t("admin.services.revenue"), v: money(s.revenue) },
+                        { l: t("admin.services.commission"), v: money(s.commission) },
+                        { l: t("admin.services.conversion"), v: s.conversion + "%" },
+                        { l: t("admin.services.rating"), v: "⭐ " + s.avgRating },
                       ].map(item => (
                         <div key={item.l} className="text-center p-2 bg-gray-50/80 rounded-xl">
                           <div className="text-xs font-bold text-gray-900">{item.v}</div>
@@ -744,12 +737,11 @@ function AdminInner() {
 
             {/* ════════════════ PARTNERS ════════════════ */}
             {activeTab === "partners" && data?.partners && (
-              <>
-                <KpiCard icon="🤝" label="Всего партнёров" value={String(data.partners.total)} gradient="from-blue-500 to-indigo-600" />
+              <>                  <KpiCard icon="🤝" label={t("admin.partners.total")} value={String(data.partners.total)} gradient="from-blue-500 to-indigo-600" />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {[{ title: "Топ по выручке", data: data.partners.topByRevenue, render: (p: any) => money(p.revenue) },
-                    { title: "Топ по заказам", data: data.partners.topByBookings, render: (p: any) => String(p.completedBookings) },
-                    { title: "Топ по рейтингу", data: data.partners.topByRating, render: (p: any) => "⭐ " + p.avgRating },
+                  {[{ title: t("admin.partners.topByRevenue"), data: data.partners.topByRevenue, render: (p: any) => money(p.revenue) },
+                    { title: t("admin.partners.topByOrders"), data: data.partners.topByBookings, render: (p: any) => String(p.completedBookings) },
+                    { title: t("admin.partners.topByRating"), data: data.partners.topByRating, render: (p: any) => "⭐ " + p.avgRating },
                   ].map(sec => (
                     <ChartCard key={sec.title} title={sec.title}>
                       <div className="space-y-2">
@@ -775,16 +767,16 @@ function AdminInner() {
                     {["PENDING", "APPROVED", "REJECTED"].map(s => (
                       <button key={s} onClick={() => { setModFilter(s); setModPage(1); }}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${modFilter === s ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}>
-                        {s === "PENDING" ? "Ожидают" : s === "APPROVED" ? "Одобрены" : "Отклонены"}
+                        {s === "PENDING" ? t("admin.moderation.pending") : s === "APPROVED" ? t("admin.moderation.approved") : t("admin.moderation.rejected")}
                       </button>
                     ))}
                   </div>
-                  <button onClick={() => fetchModeration()} className="px-4 py-2 bg-blue-500 text-white rounded-xl text-sm font-medium hover:bg-blue-600 transition-colors shadow-md shadow-blue-500/25">🔄 Обновить</button>
+                  <button onClick={() => fetchModeration()} className="px-4 py-2 bg-blue-500 text-white rounded-xl text-sm font-medium hover:bg-blue-600 transition-colors shadow-md shadow-blue-500/25">{t("admin.moderation.refresh")}</button>
                 </div>
                 {modLoading ? (
                   <div className="text-center py-12"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto" /></div>
                 ) : modItems.length === 0 ? (
-                  <div className="text-center py-12 bg-white rounded-[20px] border border-gray-100"><div className="text-4xl mb-3">✅</div><p className="text-sm text-gray-500">Нет элементов</p></div>
+                  <div className="text-center py-12 bg-white rounded-[20px] border border-gray-100"><div className="text-4xl mb-3">✅</div><p className="text-sm text-gray-500">{t("admin.moderation.noItems")}</p></div>
                 ) : (
                   <div className="space-y-3">
                     {modItems.map(s => (
@@ -802,14 +794,14 @@ function AdminInner() {
                             <div className="flex items-center gap-2 shrink-0">
                               {rejectingId === s.id ? (
                                 <div className="flex items-center gap-2">
-                                  <input type="text" value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Причина" className="w-40 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-red-400 focus:ring-0 outline-none" />
+                                  <input type="text" value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder={t("admin.moderation.reason")} className="w-40 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-red-400 focus:ring-0 outline-none" />
                                   <button onClick={() => handleModeration(s.id, "reject", rejectReason)} disabled={!rejectReason.trim()} className="px-3 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 disabled:opacity-50">OK</button>
                                   <button onClick={() => { setRejectingId(null); setRejectReason(""); }} className="text-gray-400">✕</button>
                                 </div>
                               ) : (
                                 <>
-                                  <button onClick={() => handleModeration(s.id, "approve")} className="px-4 py-2 bg-emerald-500 text-white text-sm rounded-lg hover:bg-emerald-600">✅ Одобрить</button>
-                                  <button onClick={() => setRejectingId(s.id)} className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600">✕ Отклонить</button>
+                                  <button onClick={() => handleModeration(s.id, "approve")} className="px-4 py-2 bg-emerald-500 text-white text-sm rounded-lg hover:bg-emerald-600">{t("admin.moderation.approve")}</button>
+                                  <button onClick={() => setRejectingId(s.id)} className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600">{t("admin.moderation.reject")}</button>
                                 </>
                               )}
                             </div>
@@ -826,14 +818,14 @@ function AdminInner() {
             {activeTab === "users_mgmt" && (
               <>
                 <div className="flex items-center gap-3 mb-4">
-                  <input type="text" placeholder="Поиск пользователей..." value={usersSearch} onChange={e => { setUsersSearch(e.target.value); setUsersPage(1); }}
+                  <input type="text" placeholder={t("admin.usersMgmt.search")} value={usersSearch} onChange={e => { setUsersSearch(e.target.value); setUsersPage(1); }}
                     className="flex-1 h-10 px-4 rounded-xl bg-gray-50 border border-gray-200 text-sm focus:border-blue-400 focus:ring-0 outline-none" />
                   <select value={usersRole} onChange={e => { setUsersRole(e.target.value); setUsersPage(1); }} className="h-10 px-3 rounded-xl border border-gray-200 text-sm focus:border-blue-400 focus:ring-0 outline-none">
-                    <option value="ALL">Все роли</option>
-                    <option value="ADMIN">Админ</option>
-                    <option value="MODERATOR">Модератор</option>
-                    <option value="PARTNER">Партнёр</option>
-                    <option value="BUYER">Покупатель</option>
+                    <option value="ALL">{t("admin.usersMgmt.allRoles")}</option>
+                    <option value="ADMIN">{t("admin.usersMgmt.admin")}</option>
+                    <option value="MODERATOR">{t("admin.usersMgmt.moderator")}</option>
+                    <option value="PARTNER">{t("admin.usersMgmt.partner")}</option>
+                    <option value="BUYER">{t("admin.usersMgmt.buyer")}</option>
                   </select>
                   <button onClick={() => fetchUsers()} className="px-4 py-2 bg-blue-500 text-white rounded-xl text-sm font-medium hover:bg-blue-600">🔄</button>
                 </div>
@@ -844,7 +836,7 @@ function AdminInner() {
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead><tr className="border-b border-gray-100 bg-gray-50/80">
-                          {["Имя", "Email", "Роль", "Статус", "Действия"].map(h => (
+                          {[t("admin.usersMgmt.name"), t("admin.usersMgmt.email"), t("admin.usersMgmt.role"), t("admin.usersMgmt.status"), t("admin.usersMgmt.actions")].map(h => (
                             <th key={h} className="text-left text-xs font-semibold text-gray-400 uppercase px-4 py-3">{h}</th>
                           ))}
                         </tr></thead>
@@ -854,13 +846,13 @@ function AdminInner() {
                               <td className="px-4 py-3 text-sm font-medium">{u.firstName} {u.lastName}</td>
                               <td className="px-4 py-3 text-sm text-gray-500">{u.email}</td>
                               <td className="px-4 py-3"><span className="text-xs px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 font-medium">{u.role}</span></td>
-                              <td className="px-4 py-3"><span className={`text-xs px-2.5 py-1 rounded-full font-medium ${u.isActive ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>{u.isActive ? "Активен" : "Заблокирован"}</span></td>
+                              <td className="px-4 py-3">                              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${u.isActive ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>{u.isActive ? t("admin.usersMgmt.active") : t("admin.usersMgmt.banned")}</span></td>
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-2">
                                   {u.isActive ? (
-                                    <button onClick={() => handleUserAction(u.id, "ban", "Заблокирован администратором")} className="text-xs px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">Заблокировать</button>
+                                    <button onClick={() => handleUserAction(u.id, "ban", "Заблокирован администратором")} className="text-xs px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">{t("admin.usersMgmt.ban")}</button>
                                   ) : (
-                                    <button onClick={() => handleUserAction(u.id, "unban")} className="text-xs px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100">Разблокировать</button>
+                                    <button onClick={() => handleUserAction(u.id, "unban")} className="text-xs px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100">{t("admin.usersMgmt.unban")}</button>
                                   )}
                                 </div>
                               </td>
@@ -871,7 +863,7 @@ function AdminInner() {
                     </div>
                     {usersTotalPages > 1 && (
                       <div className="flex justify-between items-center px-4 py-3 border-t border-gray-100">
-                        <span className="text-xs text-gray-400">Страница {usersPage} из {usersTotalPages}</span>
+                        <span className="text-xs text-gray-400">{t("admin.usersMgmt.page")} {usersPage} {t("admin.usersMgmt.of")} {usersTotalPages}</span>
                         <div className="flex gap-1">
                           <button onClick={() => setUsersPage(p => Math.max(1, p - 1))} disabled={usersPage === 1} className="px-3 py-1.5 text-xs border rounded-lg disabled:opacity-30">←</button>
                           <button onClick={() => setUsersPage(p => Math.min(usersTotalPages, p + 1))} disabled={usersPage >= usersTotalPages} className="px-3 py-1.5 text-xs border rounded-lg disabled:opacity-30">→</button>
@@ -886,7 +878,7 @@ function AdminInner() {
             {/* ════════════════ AUDIT ════════════════ */}
             {activeTab === "audit" && (
               <>
-                <button onClick={() => fetchAuditLogs()} className="px-4 py-2 bg-blue-500 text-white rounded-xl text-sm font-medium hover:bg-blue-600 mb-4">🔄 Обновить</button>
+                <button onClick={() => fetchAuditLogs()} className="px-4 py-2 bg-blue-500 text-white rounded-xl text-sm font-medium hover:bg-blue-600 mb-4">{t("admin.moderation.refresh")}</button>
                 {auditLoading ? (
                   <div className="text-center py-12"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto" /></div>
                 ) : (
@@ -894,7 +886,7 @@ function AdminInner() {
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead><tr className="border-b border-gray-100 bg-gray-50/80">
-                          {["Дата", "Действие", "Объект", "Оператор", "Детали"].map(h => (
+                          {[t("admin.audit.date"), t("admin.audit.action"), t("admin.audit.target"), t("admin.audit.operator"), t("admin.audit.details")].map(h => (
                             <th key={h} className="text-left text-xs font-semibold text-gray-400 uppercase px-4 py-3">{h}</th>
                           ))}
                         </tr></thead>
@@ -919,23 +911,23 @@ function AdminInner() {
             {/* ════════════════ SYSTEM ════════════════ */}
             {activeTab === "system" && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <KpiCard icon="🖥" label="API Response" value="<200ms" gradient="from-emerald-500 to-green-600" />
-                <KpiCard icon="💾" label="Database" value="Online" gradient="from-blue-500 to-indigo-600" />
-                <KpiCard icon="🔒" label="SSL" value="Active" gradient="from-violet-500 to-purple-600" />
+                <KpiCard icon="🖥" label={t("admin.system.apiResponse")} value="<200ms" gradient="from-emerald-500 to-green-600" />
+                <KpiCard icon="💾" label={t("admin.system.database")} value="Online" gradient="from-blue-500 to-indigo-600" />
+                <KpiCard icon="🔒" label={t("admin.system.ssl")} value="Active" gradient="from-violet-500 to-purple-600" />
               </div>
             )}
 
             {/* ════════════════ AI CENTER ════════════════ */}
             {activeTab === "ai" && (
-              <ChartCard title="🤖 AI Центр" subtitle="Автоматические рекомендации">
+              <ChartCard title={t("admin.ai.title")} subtitle={t("admin.ai.subtitle")}>
                 <div className="space-y-3">
                   {[
-                    { icon: "📈", text: "Спрос в Турции вырос на 23%. Рекомендуется увеличить рекламный бюджет.", type: "info" },
-                    { icon: "🏨", text: "Отель 'Grand Baku' имеет низкое качество фото. Рекомендуется обновить.", type: "warning" },
-                    { icon: "🚗", text: "Спрос на трансферы из аэропорта растёт. Рассмотрите добавление новых маршрутов.", type: "info" },
-                    { icon: "⚠️", text: "Обнаружена подозрительная активность на аккаунте user_abc123.", type: "danger" },
-                    { icon: "💰", text: "Прогноз выручки на следующий месяц: +15% к текущему.", type: "success" },
-                    { icon: "📊", text: "Рекомендация: кросс-продажи туров + отелей увеличат средний чек на 12%.", type: "info" },
+                    { icon: "📈", text: t("admin.ai.rec1"), type: "info" },
+                    { icon: "🏨", text: t("admin.ai.rec2"), type: "warning" },
+                    { icon: "🚗", text: t("admin.ai.rec3"), type: "info" },
+                    { icon: "⚠️", text: t("admin.ai.rec4"), type: "danger" },
+                    { icon: "💰", text: t("admin.ai.rec5"), type: "success" },
+                    { icon: "📊", text: t("admin.ai.rec6"), type: "info" },
                   ].map((item, i) => (
                     <div key={i} className={`flex items-start gap-3 p-4 rounded-xl border ${
                       item.type === "danger" ? "bg-red-50/80 border-red-100" :
