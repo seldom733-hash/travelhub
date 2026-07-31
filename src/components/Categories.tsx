@@ -73,13 +73,6 @@ export default function Categories() {
                   {count !== undefined ? `${formatCount(count)} ${t(`categories.items.${cat.key}Count`).split(" ").slice(1).join(" ")}` : t(`categories.items.${cat.key}Count`)}
                 </p>
 
-                <div className="flex items-center gap-1.5 pt-3 border-t border-gray-50">
-                  <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" />
-                  <span className="text-[11px] text-gray-400">
-                    {t("categories.lastBooking")}
-                  </span>
-                </div>
-
                 <div className="mt-3 text-xs font-semibold text-primary flex items-center gap-1 group-hover:translate-x-1.5 transition-transform duration-300">
                   {t("categories.moreDetails")}
                   <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
