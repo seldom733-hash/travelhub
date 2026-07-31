@@ -100,6 +100,10 @@ model Service {
   maxGuests     Int?
   languages     String      @default("")
   isActive      Boolean     @default(true)
+  moderationStatus ModerationStatus @default(PENDING)
+  moderationReason String?
+  moderatedAt     DateTime?
+  moderatedById   String?
   isFeatured    Boolean     @default(false)
   isHot         Boolean     @default(false)
   hotDiscount   Int?
@@ -141,6 +145,12 @@ enum ServiceType {
   TRANSFER
   FLIGHT
   TRAIN
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum TourCategory {
@@ -789,4 +799,25 @@ model BlogPost {
   @@index([category])
   @@index([publishedAt])
   @@map("blog_posts")
+}
+
+// ==================== AUDIT LOG ====================
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorId     String                           // ID админа/модератора
+  actorEmail  String                           // Email для быстрого просмотра
+  actorRole   String                           // ADMIN, MODERATOR
+  action      String                           // approve_service, reject_service, ban_user, unban_user, change_role, etc.
+  targetType  String                           // service, user, booking, etc.
+  targetId    String                           // ID объекта
+  reason      String?                          // Причина (для reject, ban)
+  metadata    String?                          // JSON с доп. данными (старое/новое значение)
+  createdAt   DateTime @default(now())
+
+  @@index([actorId])
+  @@index([targetType, targetId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }

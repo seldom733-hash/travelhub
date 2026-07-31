@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useI18n } from "@/lib/i18n-context";
+import { useAuth } from "@/lib/auth-context";
 
 /* ── Types ── */
-type TabId = "ceo" | "users" | "funnel" | "search" | "services" | "partners" | "finance" | "technical" | "marketing";
+type TabId = "ceo" | "users" | "funnel" | "search" | "services" | "partners" | "finance" | "technical" | "marketing" | "moderation" | "users_mgmt" | "audit";
 
 interface CeoData {
   today: { sales: number; bookings: number; commission: number; newUsers: number; newPartners: number; cancellations: number };
@@ -149,9 +150,12 @@ function Card({ title, children, className = "" }: { title?: string; children: R
 function AdminDashboardInner() {
 
   const searchParams = useSearchParams();
+  const { user } = useAuth();
+  const isModerator = user?.role === "MODERATOR";
+
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     const tab = (searchParams.get("tab") as TabId) || "ceo";
-    const valid: TabId[] = ["ceo", "users", "funnel", "search", "services", "partners", "finance", "technical", "marketing"];
+    const valid: TabId[] = ["ceo", "users", "funnel", "search", "services", "partners", "finance", "technical", "marketing", "moderation", "users_mgmt", "audit"];
     return valid.includes(tab) ? tab : "ceo";
   });
 
@@ -163,6 +167,116 @@ function AdminDashboardInner() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Moderation state
+  const [moderationItems, setModerationItems] = useState<any[]>([]);
+  const [moderationFilter, setModerationFilter] = useState<string>("PENDING");
+  const [moderationLoading, setModerationLoading] = useState(false);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Users management state
+  const [usersList, setUsersList] = useState<any[]>([]);
+  const [usersSearch, setUsersSearch] = useState("");
+  const [usersRoleFilter, setUsersRoleFilter] = useState("ALL");
+  const [usersStatusFilter, setUsersStatusFilter] = useState("ALL");
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [userActionLoading, setUserActionLoading] = useState<string | null>(null);
+
+  // Audit log state
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditActionFilter, setAuditActionFilter] = useState("ALL");
+  const [auditTargetFilter, setAuditTargetFilter] = useState("ALL");
+
+  // User action modals
+  const [banModalUser, setBanModalUser] = useState<any>(null);
+  const [banReason, setBanReason] = useState("");
+  const [roleModalUser, setRoleModalUser] = useState<any>(null);
+  const [roleModalNewRole, setRoleModalNewRole] = useState("");
+
+  const fetchModeration = useCallback(async (status = moderationFilter) => {
+    setModerationLoading(true);
+    try {
+      const res = await fetch(`/api/admin/moderation?status=${status}&limit=50`, { credentials: "include" });
+      if (res.ok) {
+        const d = await res.json();
+        setModerationItems(d.services || []);
+      }
+    } catch (e) {
+      console.error("Moderation fetch error:", e);
+    } finally {
+      setModerationLoading(false);
+    }
+  }, [moderationFilter]);
+
+  const handleModeration = useCallback(async (serviceId: string, action: "approve" | "reject", reason?: string) => {
+    setActionLoading(serviceId);
+    try {
+      const res = await fetch(`/api/admin/services/${serviceId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ action, reason }),
+      });
+      if (res.ok) {
+        setModerationItems(prev => prev.filter(s => s.id !== serviceId));
+        setRejectingId(null);
+        setRejectReason("");
+      } else {
+        const err = await res.json();
+        alert(err.error || "Ошибка");
+      }
+    } catch (e) {
+      alert("Ошибка сети");
+    } finally {
+      setActionLoading(null);
+    }
+  }, []);
+
+  // Fetch basic stats for MODERATOR (uses /api/admin which allows MODERATOR)
+  const fetchBasicData = useCallback(async (isBackground = false) => {
+    try {
+      if (isBackground) setIsRefreshing(true);
+      const res = await fetch("/api/admin", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load stats");
+      const basic = await res.json();
+      // Map basic stats to CeoData format for the overview tab
+      setData({
+        ceo: {
+          today: {
+            sales: basic.totalRevenue || 0,
+            bookings: basic.pendingBookings || 0,
+            commission: 0,
+            newUsers: 0,
+            newPartners: 0,
+            cancellations: 0,
+          },
+          totals: {
+            gmv: basic.totalRevenue || 0,
+            platformRevenue: basic.totalRevenue || 0,
+            bookings: basic.pendingBookings || 0,
+            users: basic.totalUsers || 0,
+            partners: 0,
+            avgCheck: 0,
+            avgCommission: 0,
+            cancellations: 0,
+            services: basic.totalServices || 0,
+          },
+          trends: { weekBookings: 0, weekRevenue: 0, monthBookings: 0, monthRevenue: 0 },
+          bookingsByDay: [],
+        },
+      });
+      setLastUpdated(new Date());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error");
+    } finally {
+      setIsLoading(false);
+      if (isBackground) setIsRefreshing(false);
+    }
+  }, []);
+
+  // Fetch full analytics for ADMIN
   const fetchData = useCallback(async (isBackground = false) => {
     try {
       if (isBackground) setIsRefreshing(true);
@@ -178,17 +292,97 @@ function AdminDashboardInner() {
     }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
-
-  // Auto-refresh polling
   useEffect(() => {
-    if (isAutoRefresh) {
+    // Wait for auth to load before fetching data
+    if (!user) return;
+    if (isModerator) {
+      fetchBasicData();
+    } else {
+      fetchData();
+    }
+  }, [user, isModerator, fetchBasicData, fetchData]);
+
+  const fetchUsers = useCallback(async () => {
+    setUsersLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (usersSearch) params.set("search", usersSearch);
+      if (usersRoleFilter !== "ALL") params.set("role", usersRoleFilter);
+      if (usersStatusFilter !== "ALL") params.set("status", usersStatusFilter);
+      params.set("limit", "50");
+      const res = await fetch(`/api/admin/users?${params}`, { credentials: "include" });
+      if (res.ok) {
+        const d = await res.json();
+        setUsersList(d.users || []);
+      }
+    } catch (e) {
+      console.error("Users fetch error:", e);
+    } finally {
+      setUsersLoading(false);
+    }
+  }, [usersSearch, usersRoleFilter, usersStatusFilter]);
+
+  const handleUserAction = useCallback(async (userId: string, action: string, reason?: string, newRole?: string) => {
+    setUserActionLoading(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ action, reason, newRole }),
+      });
+      if (res.ok) {
+        fetchUsers();
+      } else {
+        const err = await res.json();
+        alert(err.error || "Ошибка");
+      }
+    } catch (e) {
+      alert("Ошибка сети");
+    } finally {
+      setUserActionLoading(null);
+    }
+  }, [fetchUsers]);
+
+  const fetchAuditLogs = useCallback(async () => {
+    setAuditLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (auditActionFilter !== "ALL") params.set("action", auditActionFilter);
+      if (auditTargetFilter !== "ALL") params.set("targetType", auditTargetFilter);
+      params.set("limit", "100");
+      const res = await fetch(`/api/admin/audit?${params}`, { credentials: "include" });
+      if (res.ok) {
+        const d = await res.json();
+        setAuditLogs(d.logs || []);
+      }
+    } catch (e) {
+      console.error("Audit fetch error:", e);
+    } finally {
+      setAuditLoading(false);
+    }
+  }, [auditActionFilter, auditTargetFilter]);
+
+  // Fetch data when tabs are active
+  useEffect(() => {
+    if (activeTab === "moderation") {
+      fetchModeration(moderationFilter);
+    } else if (activeTab === "users_mgmt") {
+      fetchUsers();
+    } else if (activeTab === "audit") {
+      fetchAuditLogs();
+    }
+  }, [activeTab, moderationFilter, fetchModeration, fetchUsers, auditActionFilter, auditTargetFilter, fetchAuditLogs]);
+
+  // Auto-refresh polling (ADMIN only - MODERATOR uses basic stats)
+  useEffect(() => {
+    if (isAutoRefresh && !isModerator) {
       intervalRef.current = setInterval(() => fetchData(true), 30000);
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isAutoRefresh, fetchData]);
+  }, [isAutoRefresh, isModerator, fetchData]);
 
   /* ── Loading ── */
   if (isLoading) {
@@ -209,7 +403,7 @@ function AdminDashboardInner() {
           <div className="text-4xl mb-4">🛡</div>
           <h2 className="text-xl font-bold text-secondary mb-2">Ошибка загрузки</h2>
           <p className="text-gray-500">{error || "Нет данных"}</p>
-          <button onClick={() => { setError(null); setIsLoading(true); fetchData(); }} className="mt-4 px-4 py-2 bg-primary text-white rounded-xl text-sm hover:bg-primary-dark transition-colors">
+          <button onClick={() => { setError(null); setIsLoading(true); isModerator ? fetchBasicData() : fetchData(); }} className="mt-4 px-4 py-2 bg-primary text-white rounded-xl text-sm hover:bg-primary-dark transition-colors">
             Попробовать снова
           </button>
         </div>
@@ -228,17 +422,23 @@ function AdminDashboardInner() {
   const mkt = data.marketing;
 
   /* ── Sidebar ── */
-  const sidebar: { icon: string; label: string; id: TabId }[] = [
-    { icon: "📊", label: "CEO Dashboard", id: "ceo" },
-    { icon: "👥", label: "Пользователи", id: "users" },
-    { icon: "🔽", label: "Воронка продаж", id: "funnel" },
-    { icon: "🔍", label: "Поиск", id: "search" },
-    { icon: "📦", label: "Услуги", id: "services" },
-    { icon: "🤝", label: "Партнёры", id: "partners" },
-    { icon: "💰", label: "Финансы", id: "finance" },
-    { icon: "⚙️", label: "Техническая", id: "technical" },
-    { icon: "📣", label: "Маркетинг", id: "marketing" },
+  // MODERATOR can only access: moderation
+  // ADMIN can access everything
+  const allSidebar: { icon: string; label: string; id: TabId; adminOnly?: boolean }[] = [
+    { icon: "📊", label: "Обзор", id: "ceo" },
+    { icon: "👥", label: "Пользователи", id: "users", adminOnly: true },
+    { icon: "🔽", label: "Воронка продаж", id: "funnel", adminOnly: true },
+    { icon: "🔍", label: "Поиск", id: "search", adminOnly: true },
+    { icon: "📦", label: "Услуги", id: "services", adminOnly: true },
+    { icon: "🤝", label: "Партнёры", id: "partners", adminOnly: true },
+    { icon: "💰", label: "Финансы", id: "finance", adminOnly: true },
+    { icon: "⚙️", label: "Техническая", id: "technical", adminOnly: true },
+    { icon: "📣", label: "Маркетинг", id: "marketing", adminOnly: true },
+    { icon: "🛡", label: "Модерация", id: "moderation" },
+    { icon: "👤", label: "Управление", id: "users_mgmt", adminOnly: true },
+    { icon: "📋", label: "Аудит лог", id: "audit", adminOnly: true },
   ];
+  const sidebar = isModerator ? allSidebar.filter(item => !item.adminOnly) : allSidebar;
 
   return (
     <div className="min-h-[calc(100vh-120px)] bg-gray-50">
@@ -265,7 +465,7 @@ function AdminDashboardInner() {
                   </button>
                   {!isAutoRefresh && (
                     <button
-                      onClick={() => fetchData(true)}
+                      onClick={() => isModerator ? fetchBasicData(true) : fetchData(true)}
                       className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-all"
                     >
                       🔄 Обновить
@@ -768,9 +968,482 @@ function AdminDashboardInner() {
                 </div>
               </>
             )}
+
+            {/* ══════════ MODERATION ══════════ */}
+            {activeTab === "moderation" && (
+              <>
+                <Section title="🛡 Модерация услуг" icon="">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex bg-gray-100 rounded-xl p-1">
+                      {["PENDING", "APPROVED", "REJECTED", "ALL"].map((status) => (
+                        <button
+                          key={status}
+                          onClick={() => setModerationFilter(status)}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${moderationFilter === status ? "bg-white shadow-sm text-secondary" : "text-gray-500 hover:text-gray-700"}`}
+                        >
+                          {status === "PENDING" ? "⏳ Ожидают" : status === "APPROVED" ? "✅ Одобрены" : status === "REJECTED" ? "❌ Отклонены" : "📋 Все"}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => fetchModeration(moderationFilter)}
+                      className="px-4 py-2 bg-primary text-white rounded-xl text-sm hover:bg-primary-dark transition-colors"
+                    >
+                      🔄 Обновить
+                    </button>
+                  </div>
+                </Section>
+
+                {moderationLoading ? (
+                  <Card>
+                    <div className="text-center py-8">
+                      <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+                      <p className="text-gray-500 text-sm">Загрузка...</p>
+                    </div>
+                  </Card>
+                ) : moderationItems.length === 0 ? (
+                  <Card>
+                    <div className="text-center py-8">
+                      <div className="text-4xl mb-3">✅</div>
+                      <p className="text-gray-500">Нет услуг для модерации</p>
+                    </div>
+                  </Card>
+                ) : (
+                  <Card>
+                    <div className="space-y-3">
+                      {moderationItems.map((service) => (
+                        <div key={service.id} className="border border-gray-100 rounded-xl p-4 hover:shadow-sm transition-shadow">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
+                                  {TYPE_LABELS[service.type] || service.type}
+                                </span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                  service.moderationStatus === "PENDING" ? "bg-amber-100 text-amber-700" :
+                                  service.moderationStatus === "APPROVED" ? "bg-green-100 text-green-700" :
+                                  "bg-red-100 text-red-700"
+                                }`}>
+                                  {service.moderationStatus === "PENDING" ? "Ожидает" : service.moderationStatus === "APPROVED" ? "Одобрено" : "Отклонено"}
+                                </span>
+                              </div>
+                              <h4 className="font-bold text-secondary truncate">{service.title}</h4>
+                              <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                                <span>📍 {service.city}, {service.country}</span>
+                                <span>💰 {money(service.price)}</span>
+                                <span>⭐ {service.rating}</span>
+                                <span>👤 {service.provider.firstName} {service.provider.lastName}</span>
+                              </div>
+                              {service.moderationReason && (
+                                <div className="mt-2 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">
+                                  ❌ Причина: {service.moderationReason}
+                                </div>
+                              )}
+                            </div>
+
+                            {service.moderationStatus === "PENDING" && (
+                              <div className="flex items-center gap-2 shrink-0">
+                                {rejectingId === service.id ? (
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="text"
+                                      value={rejectReason}
+                                      onChange={(e) => setRejectReason(e.target.value)}
+                                      placeholder="Причина отклонения..."
+                                      className="w-48 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-red-400 focus:ring-0 outline-none"
+                                    />
+                                    <button
+                                      onClick={() => handleModeration(service.id, "reject", rejectReason)}
+                                      disabled={!rejectReason.trim() || actionLoading === service.id}
+                                      className="px-3 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                                    >
+                                      {actionLoading === service.id ? "..." : "Отклонить"}
+                                    </button>
+                                    <button
+                                      onClick={() => { setRejectingId(null); setRejectReason(""); }}
+                                      className="px-3 py-2 text-gray-500 text-sm hover:text-gray-700"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => handleModeration(service.id, "approve")}
+                                      disabled={actionLoading === service.id}
+                                      className="px-4 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
+                                    >
+                                      {actionLoading === service.id ? "..." : "✅ Одобрить"}
+                                    </button>
+                                    <button
+                                      onClick={() => setRejectingId(service.id)}
+                                      disabled={actionLoading === service.id}
+                                      className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                                    >
+                                      ❌ Отклонить
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+              </>
+            )}
+
+            {/* ══════════ AUDIT LOG ══════════ */}
+            {activeTab === "audit" && (
+              <>
+                <Section title="📋 Аудит лог" icon="">
+                  <div className="flex flex-wrap items-center gap-3 mb-4">
+                    <select
+                      value={auditActionFilter}
+                      onChange={(e) => setAuditActionFilter(e.target.value)}
+                      className="h-10 px-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none text-sm"
+                    >
+                      <option value="ALL">Все действия</option>
+                      <option value="approve_service">Одобрение услуги</option>
+                      <option value="reject_service">Отклонение услуги</option>
+                      <option value="ban_user">Бан пользователя</option>
+                      <option value="unban_user">Разбан пользователя</option>
+                      <option value="change_role">Смена роли</option>
+                    </select>
+                    <select
+                      value={auditTargetFilter}
+                      onChange={(e) => setAuditTargetFilter(e.target.value)}
+                      className="h-10 px-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none text-sm"
+                    >
+                      <option value="ALL">Все объекты</option>
+                      <option value="service">Услуги</option>
+                      <option value="user">Пользователи</option>
+                      <option value="booking">Бронирования</option>
+                    </select>
+                    <button
+                      onClick={fetchAuditLogs}
+                      className="h-10 px-4 bg-primary text-white rounded-xl text-sm hover:bg-primary-dark transition-colors"
+                    >
+                      🔄 Обновить
+                    </button>
+                  </div>
+                </Section>
+
+                {auditLoading ? (
+                  <Card>
+                    <div className="text-center py-8">
+                      <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+                      <p className="text-gray-500 text-sm">Загрузка...</p>
+                    </div>
+                  </Card>
+                ) : auditLogs.length === 0 ? (
+                  <Card>
+                    <div className="text-center py-8">
+                      <div className="text-4xl mb-3">📋</div>
+                      <p className="text-gray-500">Нет записей аудита</p>
+                    </div>
+                  </Card>
+                ) : (
+                  <Card>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-gray-100">
+                            <th className="text-left text-xs font-semibold text-gray-500 uppercase pb-3">Дата</th>
+                            <th className="text-left text-xs font-semibold text-gray-500 uppercase pb-3">Действие</th>
+                            <th className="text-left text-xs font-semibold text-gray-500 uppercase pb-3">Админ</th>
+                            <th className="text-left text-xs font-semibold text-gray-500 uppercase pb-3">Объект</th>
+                            <th className="text-left text-xs font-semibold text-gray-500 uppercase pb-3">Детали</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {auditLogs.map((log) => (
+                            <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="py-3 text-xs text-gray-500 whitespace-nowrap">
+                                {new Date(log.createdAt).toLocaleString("ru-RU")}
+                              </td>
+                              <td className="py-3">
+                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                  log.action.includes("approve") ? "bg-green-100 text-green-700" :
+                                  log.action.includes("reject") ? "bg-red-100 text-red-700" :
+                                  log.action.includes("ban") ? "bg-orange-100 text-orange-700" :
+                                  log.action.includes("unban") ? "bg-blue-100 text-blue-700" :
+                                  "bg-gray-100 text-gray-700"
+                                }`}>
+                                  {log.action === "approve_service" ? "✅ Одобрение" :
+                                   log.action === "reject_service" ? "❌ Отклонение" :
+                                   log.action === "ban_user" ? "🔇 Бан" :
+                                   log.action === "unban_user" ? "🔊 Разбан" :
+                                   log.action === "change_role" ? "🔄 Смена роли" :
+                                   log.action}
+                                </span>
+                              </td>
+                              <td className="py-3">
+                                <div className="text-sm text-secondary">{log.actorEmail}</div>
+                                <div className="text-[10px] text-gray-400">{log.actorRole}</div>
+                              </td>
+                              <td className="py-3">
+                                <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+                                  {log.targetType}: {log.targetId.slice(0, 8)}...
+                                </span>
+                              </td>
+                              <td className="py-3">
+                                {log.reason && (
+                                  <div className="text-xs text-red-600 mb-1">Причина: {log.reason}</div>
+                                )}
+                                {log.metadata && (
+                                  <div className="text-[10px] text-gray-400">
+                                    {log.metadata.serviceTitle && <span>Услуга: {log.metadata.serviceTitle}</span>}
+                                    {log.metadata.userName && <span>Пользователь: {log.metadata.userName}</span>}
+                                    {log.metadata.newStatus && <span> → {log.metadata.newStatus}</span>}
+                                    {log.metadata.newValue !== undefined && <span> → {String(log.metadata.newValue)}</span>}
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </Card>
+                )}
+              </>
+            )}
+
+            {/* ══════════ USERS MANAGEMENT ══════════ */}
+            {activeTab === "users_mgmt" && (
+              <>
+                <Section title="👤 Управление пользователями" icon="">
+                  <div className="flex flex-wrap items-center gap-3 mb-4">
+                    <div className="relative flex-1 min-w-[200px]">
+                      <input
+                        type="text"
+                        value={usersSearch}
+                        onChange={(e) => setUsersSearch(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && fetchUsers()}
+                        placeholder="🔍 Поиск по имени или email..."
+                        className="w-full h-10 pl-4 pr-4 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none text-sm"
+                      />
+                    </div>
+                    <select
+                      value={usersRoleFilter}
+                      onChange={(e) => setUsersRoleFilter(e.target.value)}
+                      className="h-10 px-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none text-sm"
+                    >
+                      <option value="ALL">Все роли</option>
+                      <option value="BUYER">Покупатели</option>
+                      <option value="PARTNER">Партнёры</option>
+                      <option value="MODERATOR">Модераторы</option>
+                      <option value="ADMIN">Админы</option>
+                    </select>
+                    <select
+                      value={usersStatusFilter}
+                      onChange={(e) => setUsersStatusFilter(e.target.value)}
+                      className="h-10 px-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-0 outline-none text-sm"
+                    >
+                      <option value="ALL">Все статусы</option>
+                      <option value="active">Активные</option>
+                      <option value="banned">Забаненные</option>
+                    </select>
+                    <button
+                      onClick={fetchUsers}
+                      className="h-10 px-4 bg-primary text-white rounded-xl text-sm hover:bg-primary-dark transition-colors"
+                    >
+                      🔄 Обновить
+                    </button>
+                  </div>
+                </Section>
+
+                {usersLoading ? (
+                  <Card>
+                    <div className="text-center py-8">
+                      <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+                      <p className="text-gray-500 text-sm">Загрузка...</p>
+                    </div>
+                  </Card>
+                ) : usersList.length === 0 ? (
+                  <Card>
+                    <div className="text-center py-8">
+                      <div className="text-4xl mb-3">👤</div>
+                      <p className="text-gray-500">Пользователи не найдены</p>
+                    </div>
+                  </Card>
+                ) : (
+                  <Card>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-gray-100">
+                            <th className="text-left text-xs font-semibold text-gray-500 uppercase pb-3">Пользователь</th>
+                            <th className="text-left text-xs font-semibold text-gray-500 uppercase pb-3">Роль</th>
+                            <th className="text-center text-xs font-semibold text-gray-500 uppercase pb-3">Статус</th>
+                            <th className="text-right text-xs font-semibold text-gray-500 uppercase pb-3">Заказы</th>
+                            <th className="text-right text-xs font-semibold text-gray-500 uppercase pb-3">Рецензии</th>
+                            <th className="text-right text-xs font-semibold text-gray-500 uppercase pb-3">Баллы</th>
+                            <th className="text-center text-xs font-semibold text-gray-500 uppercase pb-3">Действия</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {usersList.map((user) => (
+                            <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="py-3">
+                                <div>
+                                  <div className="text-sm font-medium text-secondary">{user.firstName} {user.lastName}</div>
+                                  <div className="text-xs text-gray-400">{user.email}</div>
+                                  <div className="text-[10px] text-gray-400 mt-0.5">{new Date(user.createdAt).toLocaleDateString("ru-RU")}</div>
+                                </div>
+                              </td>
+                              <td className="py-3">
+                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                  user.role === "ADMIN" ? "bg-red-100 text-red-700" :
+                                  user.role === "MODERATOR" ? "bg-purple-100 text-purple-700" :
+                                  user.role === "PARTNER" ? "bg-blue-100 text-blue-700" :
+                                  "bg-gray-100 text-gray-700"
+                                }`}>
+                                  {user.role === "ADMIN" ? "Админ" : user.role === "MODERATOR" ? "Модератор" : user.role === "PARTNER" ? "Партнёр" : "Покупатель"}
+                                </span>
+                              </td>
+                              <td className="py-3 text-center">
+                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                  user.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                                }`}>
+                                  {user.isActive ? "Активен" : "Забанен"}
+                                </span>
+                              </td>
+                              <td className="py-3 text-right text-sm font-medium text-secondary">{user.bookingsCount}</td>
+                              <td className="py-3 text-right text-sm font-medium text-secondary">{user.reviewsCount}</td>
+                              <td className="py-3 text-right text-sm font-medium text-amber-600">{user.bonusPoints}</td>
+                              <td className="py-3">
+                                <div className="flex items-center justify-center gap-1">
+                                  {user.isActive ? (
+                                    <button
+                                      onClick={() => { setBanModalUser(user); setBanReason(""); }}
+                                      disabled={userActionLoading === user.id || user.role === "ADMIN"}
+                                      className="px-2 py-1 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                                      title="Забанить"
+                                    >
+                                      🔇 Бан
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleUserAction(user.id, "unban")}
+                                      disabled={userActionLoading === user.id}
+                                      className="px-2 py-1 text-xs bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50"
+                                      title="Разбанить"
+                                    >
+                                      ✅ Разбан
+                                    </button>
+                                  )}
+                                  <select
+                                    value={user.role}
+                                    onChange={(e) => {
+                                      setRoleModalUser(user);
+                                      setRoleModalNewRole(e.target.value);
+                                    }}
+                                    disabled={userActionLoading === user.id}
+                                    className="text-xs px-1 py-1 border border-gray-200 rounded-lg focus:border-primary focus:ring-0 outline-none disabled:opacity-50"
+                                  >
+                                    <option value="BUYER">Покупатель</option>
+                                    <option value="PARTNER">Партнёр</option>
+                                    <option value="MODERATOR">Модератор</option>
+                                    <option value="ADMIN">Админ</option>
+                                  </select>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </Card>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
+
+      {/* ═══ Ban Modal ═══ */}
+      {banModalUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]" onClick={() => setBanModalUser(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-secondary mb-2">🔇 Забанить пользователя</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {banModalUser.firstName} {banModalUser.lastName} ({banModalUser.email})
+            </p>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Причина бана</label>
+            <textarea
+              value={banReason}
+              onChange={(e) => setBanReason(e.target.value)}
+              placeholder="Укажите причину бана..."
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-red-400 focus:ring-0 outline-none resize-none h-24"
+              autoFocus
+            />
+            <div className="flex items-center gap-3 mt-4">
+              <button
+                onClick={() => {
+                  if (banReason.trim()) {
+                    handleUserAction(banModalUser.id, "ban", banReason);
+                    setBanModalUser(null);
+                  }
+                }}
+                disabled={!banReason.trim() || userActionLoading === banModalUser.id}
+                className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-xl text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+              >
+                {userActionLoading === banModalUser.id ? "Выполняется..." : "Забанить"}
+              </button>
+              <button
+                onClick={() => setBanModalUser(null)}
+                className="px-4 py-2.5 text-gray-500 text-sm font-medium hover:text-gray-700"
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Role Change Modal ═══ */}
+      {roleModalUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]" onClick={() => setRoleModalUser(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-secondary mb-2">🔄 Смена роли</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {roleModalUser.firstName} {roleModalUser.lastName} ({roleModalUser.email})
+            </p>
+            <div className="bg-gray-50 rounded-xl p-4 mb-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">Текущая роль:</span>
+                <span className="font-medium text-secondary">{roleModalUser.role}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm mt-2">
+                <span className="text-gray-500">Новая роль:</span>
+                <span className="font-bold text-primary">{roleModalNewRole}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  handleUserAction(roleModalUser.id, "change_role", undefined, roleModalNewRole);
+                  setRoleModalUser(null);
+                }}
+                disabled={userActionLoading === roleModalUser.id}
+                className="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
+              >
+                {userActionLoading === roleModalUser.id ? "Выполняется..." : "Подтвердить"}
+              </button>
+              <button
+                onClick={() => setRoleModalUser(null)}
+                className="px-4 py-2.5 text-gray-500 text-sm font-medium hover:text-gray-700"
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

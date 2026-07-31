@@ -21,7 +21,7 @@ export default function AdminPage() {
 
   const menuItems = [
     { icon: "📊", label: "Аналитика", desc: "Полная аналитика платформы — просмотры, доход, пользователи", href: "/admin_dashboard", color: "from-blue-500 to-indigo-600" },
-    { icon: "🛡", label: "Модерация", desc: "Проверка новых услуг и отзывов", href: "/admin_dashboard?tab=overview", color: "from-amber-500 to-orange-600" },
+    { icon: "🛡", label: "Модерация", desc: "Проверка новых услуг и отзывов", href: "/admin_dashboard?tab=moderation", color: "from-amber-500 to-orange-600" },
     { icon: "🤝", label: "Партнёры", desc: "Управление партнёрами и их услугами", href: "/admin_dashboard?tab=partners", color: "from-green-500 to-emerald-600" },
     { icon: "👥", label: "Пользователи", desc: "Список пользователей и их активность", href: "/admin_dashboard?tab=users", color: "from-purple-500 to-violet-600" },
     { icon: "💰", label: "Финансы", desc: "Доходы, комиссии, отчёты", href: "/admin_dashboard?tab=finance", color: "from-red-500 to-rose-600" },
