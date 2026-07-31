@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-helpers";
 
 // Stripe initialization (lazy to avoid build errors without key)
 function getStripe() {
@@ -14,13 +14,9 @@ function getStripe() {
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("Authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-
-    if (!token) return NextResponse.json({ error: "Необходима авторизация" }, { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload) return NextResponse.json({ error: "Неверный токен" }, { status: 401 });
+    const auth = await requireAdmin(request, ["BUYER", "PARTNER", "ADMIN", "MODERATOR"]);
+    if (auth.response) return auth.response;
+    const payload = auth.payload;
 
     const body = await request.json();
     const { items, guestInfo } = body;

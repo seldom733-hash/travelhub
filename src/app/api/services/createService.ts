@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-helpers";
 import type { ServiceType, TourCategory } from "@prisma/client";
 
 export interface MultiDayHotel {
@@ -51,17 +51,9 @@ export interface CreateServiceBody {
 export async function createService(request: NextRequest) {
   try {
     const { prisma } = await import("@/lib/prisma");
-    const authHeader = request.headers.get("Authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-
-    if (!token) {
-      return NextResponse.json({ error: "Необходима авторизация" }, { status: 401 });
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload || payload.role !== "PARTNER") {
-      return NextResponse.json({ error: "Доступ запрещён" }, { status: 403 });
-    }
+    const auth = await requireAdmin(request, ["PARTNER"]);
+    if (auth.response) return auth.response;
+    const payload = auth.payload;
 
     const raw = await request.json();
     if (!raw || typeof raw !== "object") {

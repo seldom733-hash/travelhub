@@ -98,14 +98,9 @@ export default function PartnerServiceNewPage() {
     setError("");
 
     try {
-      const token = document.cookie.match(/token=([^;]+)/)?.[1];
-
       const res = await fetch("/api/services", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           title: form.title,

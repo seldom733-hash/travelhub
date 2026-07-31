@@ -326,10 +326,9 @@ function CsvImporter({ serviceId, onImported }: { serviceId: string; onImported:
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const token = localStorage.getItem("token");
       const res = await fetch(`/api/services/${serviceId}/import`, {
         method: "POST", body: formData,
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
       const data = await res.json();
       setResult(data.result);
@@ -521,10 +520,10 @@ export default function PartnerServicesPage() {
     }
     setSaving(true);
     try {
-      const token = localStorage.getItem("token");
       const res = await fetch("/api/services", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           title, description, type: serviceType, price: basePrice, city, country, countryCode: "",
           tourCategory: serviceType === "TOUR" ? tourCategory : undefined,
@@ -556,7 +555,6 @@ export default function PartnerServicesPage() {
     }
     setSaving(true);
     try {
-      const token = localStorage.getItem("token");
       const today = new Date();
       const monthLater = new Date(today);
       monthLater.setMonth(monthLater.getMonth() + 3);
@@ -577,7 +575,8 @@ export default function PartnerServicesPage() {
 
       const res = await fetch(`/api/services/${createdServiceId}/variants`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ variants }),
       });
       if (!res.ok) throw new Error("Ошибка сохранения");
