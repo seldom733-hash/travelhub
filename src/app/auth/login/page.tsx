@@ -33,7 +33,7 @@ function LoginForm() {
       if (!response.ok) throw new Error(data.error || t("auth.loginError"));
 
       login(data.user);
-      const redirect = searchParams.get("redirect") || "/dashboard";
+      const redirect = searchParams.get("redirect") || "/";
       router.push(redirect);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("auth.genericError"));

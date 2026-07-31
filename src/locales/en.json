@@ -184,6 +184,7 @@
     }
   },
   "popularDestinations": {
+    "badge": "🌍 Destinations",
     "title": "Popular Destinations",
     "subtitle": "Most sought-after destinations this season",
     "viewAll": "All destinations →",
@@ -246,7 +247,8 @@
     "viewAll": "All guides →",
     "excursions": "excursions",
     "tourists": "tourists",
-    "message": "Message"
+    "message": "Message",
+    "hasLicense": "Licensed"
   },
   "photographers": {
     "title": "Photographers",

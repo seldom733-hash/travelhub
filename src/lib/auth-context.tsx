@@ -33,11 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const data = await res.json();
           setUser(data.user);
         } else {
+          // Token invalid or expired — clear stale cookie
           setUser(null);
+          fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
         }
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
         setUser(null);
+        fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
       } finally {
         setIsLoading(false);
       }

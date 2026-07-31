@@ -27,14 +27,14 @@ async function ensurePageViewsTable() {
         is_partner BOOLEAN DEFAULT false,
         duration INTEGER,
         created_at TIMESTAMPTZ DEFAULT now()
-      );
-      CREATE INDEX IF NOT EXISTS idx_pv_service_id ON page_views(service_id);
-      CREATE INDEX IF NOT EXISTS idx_pv_user_id ON page_views(user_id);
-      CREATE INDEX IF NOT EXISTS idx_pv_session_id ON page_views(session_id);
-      CREATE INDEX IF NOT EXISTS idx_pv_created_at ON page_views(created_at);
-      CREATE INDEX IF NOT EXISTS idx_pv_service_type ON page_views(service_type);
-      CREATE INDEX IF NOT EXISTS idx_pv_path ON page_views(path);
+      )
     `);
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS idx_pv_service_id ON page_views(service_id)`);
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS idx_pv_user_id ON page_views(user_id)`);
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS idx_pv_session_id ON page_views(session_id)`);
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS idx_pv_created_at ON page_views(created_at)`);
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS idx_pv_service_type ON page_views(service_type)`);
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS idx_pv_path ON page_views(path)`);
     tableEnsured = true;
   } catch (e) {
     console.error("Failed to ensure page_views table:", e);

@@ -62,7 +62,7 @@ export default function RegisterPage() {
       if (!response.ok) throw new Error(data.error || t("auth.registerError"));
 
       login(data.user);
-      router.push("/dashboard");
+      router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("auth.genericError"));
     } finally {

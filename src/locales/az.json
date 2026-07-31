@@ -184,6 +184,7 @@
     }
   },
   "popularDestinations": {
+    "badge": "🌍 İstiqamətlər",
     "title": "Populyar istiqamətlər",
     "subtitle": "Bu mövsümün ən çox axtarılan istiqamətləri",
     "viewAll": "Bütün istiqamətlər →",
@@ -246,7 +247,8 @@
     "viewAll": "Bütün bələdçilər →",
     "excursions": "ekskursiya",
     "tourists": "turist",
-    "message": "Yazın"
+    "message": "Yazın",
+    "hasLicense": "Lisenziyalı"
   },
   "photographers": {
     "title": "Fotoqraflar",

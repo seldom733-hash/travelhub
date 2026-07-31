@@ -10,7 +10,7 @@ if (!rawSecret) {
 }
 const JWT_SECRET = new TextEncoder().encode(rawSecret);
 
-const protectedRoutes = ["/dashboard", "/partner", "/admin", "/chat", "/favorites", "/notifications", "/loyalty", "/bookings"];
+const protectedRoutes = ["/partner", "/admin", "/chat", "/favorites", "/notifications", "/loyalty", "/bookings"];
 const authRoutes = ["/auth/login", "/auth/register"];
 
 export async function proxy(request: NextRequest) {
@@ -41,7 +41,7 @@ export async function proxy(request: NextRequest) {
   if (token && isAuthRoute) {
     try {
       await jwtVerify(token, JWT_SECRET);
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/", request.url));
     } catch {
       // Token invalid, allow access to auth pages
     }
@@ -51,5 +51,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/partner/:path*", "/admin/:path*", "/chat/:path*", "/favorites/:path*", "/notifications/:path*", "/loyalty/:path*", "/bookings/:path*", "/auth/:path*"],
+  matcher: ["/partner/:path*", "/admin/:path*", "/chat/:path*", "/favorites/:path*", "/notifications/:path*", "/loyalty/:path*", "/bookings/:path*", "/auth/:path*"],
 };

@@ -143,7 +143,7 @@ export async function PATCH(
           type: "SYSTEM",
           title: notifTitle,
           description: notifDesc,
-          link: "/dashboard",
+          link: "/",
           userId: id,
         },
       });

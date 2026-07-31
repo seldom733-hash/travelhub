@@ -268,9 +268,8 @@ export default function Header() {
                         <p className="text-xs text-gray-400">{user.email}</p>
                       </div>
                       {user.role === "ADMIN" && (
-                        <a href="/admin" className="block px-4 py-2 text-sm text-primary font-semibold hover:bg-primary/5 transition-colors">🛡 Admin Panel</a>
+                        <a href="/admin_dashboard" className="block px-4 py-2 text-sm text-primary font-semibold hover:bg-primary/5 transition-colors">🛡 {t("header.dashboard")}</a>
                       )}
-                      <a href="/dashboard" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">{t("header.dashboard")}</a>
 
                       <a href="/favorites" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">{t("header.favorites")}</a>
                       <a href="/settings" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">{t("header.settings")}</a>

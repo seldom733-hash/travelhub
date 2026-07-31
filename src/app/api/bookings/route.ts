@@ -7,7 +7,9 @@ export async function GET(request: NextRequest) {
   try {
     const { prisma } = await import("@/lib/prisma");
     const authHeader = request.headers.get("Authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    const cookieToken = request.cookies.get("token")?.value;
+    const token = bearerToken || cookieToken;
 
     if (!token) return NextResponse.json({ error: "Необходима авторизация" }, { status: 401 });
 
@@ -44,7 +46,9 @@ export async function POST(request: NextRequest) {
   try {
     const { prisma } = await import("@/lib/prisma");
     const authHeader = request.headers.get("Authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    const cookieToken = request.cookies.get("token")?.value;
+    const token = bearerToken || cookieToken;
 
     if (!token) return NextResponse.json({ error: "Необходима авторизация" }, { status: 401 });
 

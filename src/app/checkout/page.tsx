@@ -114,7 +114,7 @@ function CheckoutContent() {
           </p>
           <div className="flex flex-col gap-3">
             <a
-              href="/dashboard"
+              href="/"
               className="h-12 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all hover:shadow-lg"
             >
               {t("checkout.myBookings")}
