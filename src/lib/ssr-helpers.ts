@@ -77,10 +77,13 @@ export async function fetchServicesForSSR(
 
   const items = services.map((s) => mapRawToService(s as unknown as Record<string, unknown>, serviceType, priceUnitKey, t));
 
+  // Serialize Prisma objects to plain JSON — Decimal, Date, etc. cannot cross the Server→Client boundary
+  const serialized = JSON.parse(JSON.stringify(services));
+
   return {
     items,
     totalCount,
     totalPages: Math.max(1, Math.ceil(totalCount / limit)),
-    rawServices: services as unknown as Record<string, unknown>[],
+    rawServices: serialized,
   };
 }
