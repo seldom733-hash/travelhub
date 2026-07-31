@@ -665,6 +665,7 @@
     "releaseToDismiss": "Release to dismiss",
     "swipeToOpen": "Swipe up to open filters",
     "searchOptions": "Search...",
+    "selectOption": "Select...",
     "group": {
       "hotelFilters": "🏨 Hotel Filters",
       "flightFilters": "✈️ Flight Filters"

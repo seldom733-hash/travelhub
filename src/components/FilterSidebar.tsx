@@ -138,7 +138,7 @@ export default function FilterSidebar({ category, onFilterChange, onSortChange, 
   /** Get display text for combobox trigger */
   const getComboboxLabel = (filter: FilterDefinition): string => {
     const selected = selectedValues[filter.id] || [];
-    if (selected.length === 0) return t("filter.searchOptions");
+    if (selected.length === 0) return t("filter.selectOption");
     if (selected.length === 1) {
       const opt = filter.options?.find(o => o.value === selected[0]);
       if (opt) {

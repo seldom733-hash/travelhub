@@ -665,6 +665,7 @@
     "releaseToDismiss": "Отпустите, чтобы закрыть",
     "swipeToOpen": "Проведите вверх, чтобы открыть фильтры",
     "searchOptions": "Поиск...",
+    "selectOption": "Выберите...",
     "group": {
       "hotelFilters": "🏨 Фильтры отеля",
       "flightFilters": "✈️ Фильтры авиарейса"
