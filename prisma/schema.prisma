@@ -740,6 +740,33 @@ model UserActivity {
   @@map("user_activity")
 }
 
+// ==================== MARKETING ANALYTICS ====================
+
+model MarketingEvent {
+  id            String   @id @default(cuid())
+  channel       String                           // google, instagram, facebook, tiktok, email, direct, referral, youtube, telegram
+  campaign      String?                          // Название кампании: summer_sale_2025, antalya_tours
+  utmSource     String?                          // utm_source: google, instagram
+  utmMedium     String?                          // utm_medium: cpc, social, email, organic
+  utmCampaign   String?                          // utm_campaign: summer_2025
+  utmContent    String?                          // utm_content: banner_a, video_b
+  utmTerm       String?                          // utm_term: antalya hotel
+  sessionId     String?                          // Session ID
+  userId        String?                          // ID пользователя
+  eventType     String   @default("visit")       // visit, register, view_service, start_checkout, complete_booking
+  cost          Float?                           // Стоимость клика/показа (AZN)
+  revenue       Float?                           // Доход от события (AZN)
+  metadata      String?                          // JSON с доп. данными
+  createdAt     DateTime @default(now())
+
+  @@index([channel])
+  @@index([campaign])
+  @@index([utmSource])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("marketing_events")
+}
+
 // ==================== BLOG ====================
 
 model BlogPost {

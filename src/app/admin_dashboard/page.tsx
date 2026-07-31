@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useI18n } from "@/lib/i18n-context";
 
 /* ── Types ── */
-type TabId = "ceo" | "users" | "funnel" | "search" | "services" | "partners" | "finance" | "technical";
+type TabId = "ceo" | "users" | "funnel" | "search" | "services" | "partners" | "finance" | "technical" | "marketing";
 
 interface CeoData {
   today: { sales: number; bookings: number; commission: number; newUsers: number; newPartners: number; cancellations: number };
@@ -56,10 +56,18 @@ interface TechData {
   topPages: { path: string; count: number; avgDuration: number }[];
 }
 
+interface MarketingData {
+  totals: { cost: number; revenue: number; profit: number; roi: number; cac: number; totalVisits: number; totalBookings: number; convRate: number };
+  channels: { channel: string; visits: number; registrations: number; bookings: number; revenue: number; cost: number; cac: number; roi: number; convRate: number }[];
+  campaigns: { name: string; channel: string; visits: number; bookings: number; revenue: number; cost: number; cac: number; roi: number }[];
+  utmSources: { source: string; visits: number; bookings: number; revenue: number }[];
+  eventsByDay: { date: string; visits: number; bookings: number; revenue: number }[];
+}
+
 interface ExtendedAnalytics {
   ceo?: CeoData; users?: UserData; funnel?: FunnelData; search?: SearchData;
   services?: ServiceTypeData[]; partners?: PartnerData;
-  finance?: FinanceData; technical?: TechData;
+  finance?: FinanceData; technical?: TechData; marketing?: MarketingData;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -143,7 +151,7 @@ function AdminDashboardInner() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     const tab = (searchParams.get("tab") as TabId) || "ceo";
-    const valid: TabId[] = ["ceo", "users", "funnel", "search", "services", "partners", "finance", "technical"];
+    const valid: TabId[] = ["ceo", "users", "funnel", "search", "services", "partners", "finance", "technical", "marketing"];
     return valid.includes(tab) ? tab : "ceo";
   });
 
@@ -217,6 +225,7 @@ function AdminDashboardInner() {
   const prt = data.partners;
   const fin = data.finance;
   const tech = data.technical;
+  const mkt = data.marketing;
 
   /* ── Sidebar ── */
   const sidebar: { icon: string; label: string; id: TabId }[] = [
@@ -228,6 +237,7 @@ function AdminDashboardInner() {
     { icon: "🤝", label: "Партнёры", id: "partners" },
     { icon: "💰", label: "Финансы", id: "finance" },
     { icon: "⚙️", label: "Техническая", id: "technical" },
+    { icon: "📣", label: "Маркетинг", id: "marketing" },
   ];
 
   return (
@@ -654,6 +664,104 @@ function AdminDashboardInner() {
                         data={tech.topPages.slice(0, 8).map(p => ({ label: p.path, value: p.count }))}
                         maxVal={Math.max(...tech.topPages.slice(0, 8).map(p => p.count), 1)}
                         colorClass="bg-purple-500"
+                      />
+                    ) : <p className="text-gray-400 text-sm text-center py-8">Нет данных</p>}
+                  </Card>
+                </div>
+              </>
+            )}
+            {/* ══════════ MARKETING ══════════ */}
+            {activeTab === "marketing" && mkt && (
+              <>
+                <Section title="📣 Маркетинговая аналитика" icon="">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <KpiCard icon="💰" label="Расходы" value={money(mkt.totals.cost)} color="bg-red-50 text-red-600" />
+                    <KpiCard icon="💵" label="Доход от рекламы" value={money(mkt.totals.revenue)} color="bg-green-50 text-green-600" />
+                    <KpiCard icon="📈" label="ROI" value={mkt.totals.roi + "%"} color={mkt.totals.roi >= 0 ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"} />
+                    <KpiCard icon="🎯" label="CAC (стоимость привлечения)" value={money(mkt.totals.cac)} color="bg-primary/10 text-primary" />
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <KpiCard icon="👁" label="Визиты" value={fmt(mkt.totals.totalVisits)} color="bg-blue-50 text-blue-600" />
+                    <KpiCard icon="🛒" label="Бронирования" value={String(mkt.totals.totalBookings)} color="bg-purple-50 text-purple-600" />
+                    <KpiCard icon="🔄" label="Конверсия" value={mkt.totals.convRate + "%"} color="bg-amber-50 text-amber-600" />
+                    <KpiCard icon="💵" label="Прибыль" value={money(mkt.totals.profit)} color={mkt.totals.profit >= 0 ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"} />
+                  </div>
+                </Section>
+
+                <Card title="📊 Доход по каналам">
+                  <BarChart
+                    data={mkt.channels.map(c => ({ label: c.channel, value: c.revenue }))}
+                    maxVal={Math.max(...mkt.channels.map(c => c.revenue), 1)}
+                    colorClass="bg-green-500"
+                  />
+                </Card>
+
+                <Card title="📱 Каналы привлечения">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-gray-100">
+                          <th className="text-left text-xs font-semibold text-gray-500 uppercase pb-3">Канал</th>
+                          <th className="text-right text-xs font-semibold text-gray-500 uppercase pb-3">Визиты</th>
+                          <th className="text-right text-xs font-semibold text-gray-500 uppercase pb-3">Заказы</th>
+                          <th className="text-right text-xs font-semibold text-gray-500 uppercase pb-3">Доход</th>
+                          <th className="text-right text-xs font-semibold text-gray-500 uppercase pb-3">Расходы</th>
+                          <th className="text-right text-xs font-semibold text-gray-500 uppercase pb-3">ROI</th>
+                          <th className="text-right text-xs font-semibold text-gray-500 uppercase pb-3">CAC</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {mkt.channels.map(c => (
+                          <tr key={c.channel} className="hover:bg-gray-50">
+                            <td className="py-3 text-sm font-medium capitalize">{c.channel}</td>
+                            <td className="py-3 text-sm text-right">{fmt(c.visits)}</td>
+                            <td className="py-3 text-sm text-right font-bold text-secondary">{c.bookings}</td>
+                            <td className="py-3 text-sm text-right font-bold text-green-600">{money(c.revenue)}</td>
+                            <td className="py-3 text-sm text-right text-red-600">{money(c.cost)}</td>
+                            <td className="py-3 text-sm text-right"><span className={`font-bold ${c.roi >= 0 ? "text-green-600" : "text-red-600"}`}>{c.roi}%</span></td>
+                            <td className="py-3 text-sm text-right">{money(c.cac)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+
+                {mkt.campaigns.length > 0 && (
+                  <Card title="🎯 Кампании">
+                    <div className="space-y-2">
+                      {mkt.campaigns.slice(0, 10).map((c, i) => (
+                        <div key={i} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-bold text-gray-400 w-6 text-center">{i + 1}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-secondary truncate">{c.name}</div>
+                            <div className="text-xs text-gray-400">{c.channel} • {c.visits} визитов • {c.bookings} заказов</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-bold text-green-600">{money(c.revenue)}</div>
+                            <div className={`text-xs ${c.roi >= 0 ? "text-green-500" : "text-red-500"}`}>ROI {c.roi}%</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card title="🔗 UTM-источники">
+                    {mkt.utmSources.length > 0 ? (
+                      <BarChart
+                        data={mkt.utmSources.map(u => ({ label: u.source, value: u.revenue }))}
+                        maxVal={Math.max(...mkt.utmSources.map(u => u.revenue), 1)}
+                        colorClass="bg-indigo-500"
+                      />
+                    ) : <p className="text-gray-400 text-sm text-center py-8">Нет данных</p>}
+                  </Card>
+                  <Card title="📈 Доход от рекламы по дням">
+                    {mkt.eventsByDay.length > 0 ? (
+                      <MiniBarChart
+                        items={mkt.eventsByDay.slice().reverse().map(d => ({ label: d.date.slice(5), value: Math.round(d.revenue), color: "bg-green-500 hover:bg-green-600" }))}
+                        maxVal={Math.max(...mkt.eventsByDay.map(d => d.revenue), 1)}
                       />
                     ) : <p className="text-gray-400 text-sm text-center py-8">Нет данных</p>}
                   </Card>

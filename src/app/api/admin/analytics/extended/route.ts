@@ -423,6 +423,108 @@ export async function GET(request: NextRequest) {
       };
     }
 
+    // ════════════════════════════════════════════════════════════════════
+    // MARKETING ANALYTICS
+    // ════════════════════════════════════════════════════════════════════
+    if (section === "all" || section === "marketing") {
+      const allEvents = await safeQuery(() => prisma.marketingEvent.findMany({
+        select: { channel: true, campaign: true, utmSource: true, utmMedium: true, utmCampaign: true, eventType: true, cost: true, revenue: true, createdAt: true },
+      }), []);
+
+      // Channels aggregation
+      const channelStats = new Map<string, { visits: number; registrations: number; bookings: number; revenue: number; cost: number }>();
+      for (const ev of allEvents) {
+        const ch = ev.channel || "unknown";
+        const existing = channelStats.get(ch) || { visits: 0, registrations: 0, bookings: 0, revenue: 0, cost: 0 };
+        if (ev.eventType === "visit") existing.visits++;
+        if (ev.eventType === "register") existing.registrations++;
+        if (ev.eventType === "complete_booking") existing.bookings++;
+        existing.cost += ev.cost || 0;
+        existing.revenue += ev.revenue || 0;
+        channelStats.set(ch, existing);
+      }
+      const channels = [...channelStats.entries()]
+        .map(([channel, s]) => ({
+          channel, ...s,
+          cac: s.bookings > 0 ? Math.round(s.cost / s.bookings) : 0,
+          roi: s.cost > 0 ? Math.round(((s.revenue - s.cost) / s.cost) * 100) : 0,
+          convRate: s.visits > 0 ? Math.round((s.bookings / s.visits) * 100) : 0,
+        }))
+        .sort((a, b) => b.revenue - a.revenue);
+
+      // Campaigns aggregation
+      const campaignStats = new Map<string, { channel: string; visits: number; bookings: number; revenue: number; cost: number }>();
+      for (const ev of allEvents) {
+        const cmp = ev.utmCampaign || ev.campaign || null;
+        if (!cmp) continue;
+        const existing = campaignStats.get(cmp) || { channel: ev.channel, visits: 0, bookings: 0, revenue: 0, cost: 0 };
+        if (ev.eventType === "visit") existing.visits++;
+        if (ev.eventType === "complete_booking") existing.bookings++;
+        existing.cost += ev.cost || 0;
+        existing.revenue += ev.revenue || 0;
+        campaignStats.set(cmp, existing);
+      }
+      const campaigns = [...campaignStats.entries()]
+        .map(([name, s]) => ({
+          name, ...s,
+          cac: s.bookings > 0 ? Math.round(s.cost / s.bookings) : 0,
+          roi: s.cost > 0 ? Math.round(((s.revenue - s.cost) / s.cost) * 100) : 0,
+        }))
+        .sort((a, b) => b.revenue - a.revenue);
+
+      // UTM Sources aggregation
+      const utmStats = new Map<string, { visits: number; bookings: number; revenue: number }>();
+      for (const ev of allEvents) {
+        const src = ev.utmSource || "direct";
+        const existing = utmStats.get(src) || { visits: 0, bookings: 0, revenue: 0 };
+        if (ev.eventType === "visit") existing.visits++;
+        if (ev.eventType === "complete_booking") existing.bookings++;
+        existing.revenue += ev.revenue || 0;
+        utmStats.set(src, existing);
+      }
+      const utmSources = [...utmStats.entries()]
+        .map(([source, s]) => ({ source, ...s }))
+        .sort((a, b) => b.revenue - a.revenue);
+
+      // Totals
+      const totalCost = channels.reduce((sum, c) => sum + c.cost, 0);
+      const totalRevenue = channels.reduce((sum, c) => sum + c.revenue, 0);
+      const totalBookings = channels.reduce((sum, c) => sum + c.bookings, 0);
+      const totalVisits = channels.reduce((sum, c) => sum + c.visits, 0);
+
+      // Events by day
+      const dayCounts = new Map<string, { visits: number; bookings: number; revenue: number }>();
+      for (const ev of allEvents) {
+        const day = ev.createdAt.toISOString().slice(0, 10);
+        const existing = dayCounts.get(day) || { visits: 0, bookings: 0, revenue: 0 };
+        if (ev.eventType === "visit") existing.visits++;
+        if (ev.eventType === "complete_booking") existing.bookings++;
+        existing.revenue += ev.revenue || 0;
+        dayCounts.set(day, existing);
+      }
+      const eventsByDay = [...dayCounts.entries()]
+        .map(([date, d]) => ({ date, ...d }))
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, 30);
+
+      result.marketing = {
+        totals: {
+          cost: totalCost,
+          revenue: totalRevenue,
+          profit: totalRevenue - totalCost,
+          roi: totalCost > 0 ? Math.round(((totalRevenue - totalCost) / totalCost) * 100) : 0,
+          cac: totalBookings > 0 ? Math.round(totalCost / totalBookings) : 0,
+          totalVisits,
+          totalBookings,
+          convRate: totalVisits > 0 ? Math.round((totalBookings / totalVisits) * 100) : 0,
+        },
+        channels,
+        campaigns: campaigns.slice(0, 20),
+        utmSources,
+        eventsByDay,
+      };
+    }
+
     return NextResponse.json(cleanBigInt(result));
   } catch (error) {
     console.error("Extended analytics error:", error);
