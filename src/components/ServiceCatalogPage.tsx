@@ -206,6 +206,7 @@ export default function ServiceCatalogPage({
       {jsonLd && (
         <script
           type="application/ld+json"
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
