@@ -38,9 +38,9 @@ export default function Footer() {
   ];
 
   const partnerLinks = [
-    { labelKey: "footer.commissions", href: "/partners/commissions" },
-    { labelKey: "footer.api", href: "/partners/api" },
-    { labelKey: "footer.docs", href: "/partners/docs" },
+    { labelKey: "footer.commissions", href: "/partner/commissions" },
+    { labelKey: "footer.api", href: "/partner/api" },
+    { labelKey: "footer.docs", href: "/partner/docs" },
   ];
 
   const supportLinks = [
@@ -115,7 +115,7 @@ export default function Footer() {
           ))}
         </div>
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-500">{t("footer.copyright")}</p>
+          <p className="text-sm text-gray-500">{t("footer.copyright").replace("{year}", String(new Date().getFullYear()))}</p>
           <div className="flex items-center gap-6">
             <a href="/terms" className="text-sm text-gray-500 hover:text-white transition-colors">{t("footer.terms")}</a>
             <a href="/privacy" className="text-sm text-gray-500 hover:text-white transition-colors">{t("footer.privacy")}</a>

@@ -89,7 +89,7 @@ export default function ForPartners() {
                 </div>
               ))}
             </div>
-            <a href="/partners" className="inline-flex items-center gap-2 h-14 px-8 bg-white text-primary rounded-2xl font-bold text-lg hover:bg-gray-50 transition-all hover:shadow-lg active:scale-95">{t("forPartners.cta")}</a>
+            <a href="/partner" className="inline-flex items-center gap-2 h-14 px-8 bg-white text-primary rounded-2xl font-bold text-lg hover:bg-gray-50 transition-all hover:shadow-lg active:scale-95">{t("forPartners.cta")}</a>
           </div>
           <div className="hidden md:block">
             <div className="bg-white/15 backdrop-blur-md rounded-3xl p-8 border border-white/20">

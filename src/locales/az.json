@@ -133,6 +133,7 @@
     "statsExcursions": "Ekskursiya"
   },
   "categories": {
+    "badge": "🌍 Xidmət kataloqu",
     "title": "Kateqoriya seçin",
     "subtitle": "Mükəmməl səyahətiniz üçün 100 000-dən çox xidmət",
     "lastBooking": "Son bronlaşma",
@@ -860,7 +861,11 @@
       "partners": "Aktiv tərəfdaşlar",
       "orders": "Aylıq sifarişlər",
       "income": "Orta gəlir",
-      "rating": "Tərəfdaş reytinqi"
+      "rating": "Tərəfdaş reytinqi",
+      "services": "Platform xidmətləri",
+      "reviews": "Rəylər",
+      "conversion": "Bronlaşma konversiyası",
+      "avgCheck": "Orta hesab"
     }
   },
   "footer": {
@@ -885,7 +890,7 @@
     "services": "Xidmətlər",
     "users": "İstifadəçilər",
     "partnersCount": "Tərəfdaşlar",
-    "copyright": "© 2024 TravelHub. Bütün hüquqlar qorunur.",
+    "copyright": "© {year} TravelHub. Bütün hüquqlar qorunur.",
     "terms": "İstifadə şərtləri",
     "privacy": "Məxfilik siyasəti"
   },

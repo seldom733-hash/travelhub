@@ -133,6 +133,7 @@
     "statsExcursions": "Excursions"
   },
   "categories": {
+    "badge": "🌍 Service Catalog",
     "title": "Choose a category",
     "subtitle": "Over 100,000 services for your perfect trip",
     "lastBooking": "Last booking",
@@ -880,7 +881,11 @@
       "partners": "Active Partners",
       "orders": "Orders per Month",
       "income": "Average Income",
-      "rating": "Partner Rating"
+      "rating": "Partner Rating",
+      "services": "Platform Services",
+      "reviews": "Reviews",
+      "conversion": "Booking Conversion",
+      "avgCheck": "Average Check"
     }
   },
   "footer": {
@@ -905,7 +910,7 @@
     "services": "Services",
     "users": "Users",
     "partnersCount": "Partners",
-    "copyright": "© 2024 TravelHub. All rights reserved.",
+    "copyright": "© {year} TravelHub. All rights reserved.",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy"
   },

@@ -203,7 +203,7 @@ export default function Header() {
       <div className="bg-secondary text-white text-sm">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-9">
           <div className="flex items-center gap-4">
-            <span className="text-gray-400">📞 +994 XX XXX XX XX</span>
+            <span className="text-gray-400">📞 +994 12 345 67 89</span>
             <span className="text-gray-400 hidden sm:inline">📧 info@travelhub.az</span>
           </div>
           <div className="flex items-center gap-3">
