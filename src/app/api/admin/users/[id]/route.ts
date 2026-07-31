@@ -48,6 +48,22 @@ export async function PATCH(
       );
     }
 
+    // Prevent banning other ADMINs (server-side, not just UI)
+    if (action === "ban" && user.role === "ADMIN") {
+      return NextResponse.json(
+        { error: "Нельзя забанить другого администратора" },
+        { status: 403 }
+      );
+    }
+
+    // Prevent demoting other ADMINs
+    if (action === "change_role" && user.role === "ADMIN" && newRole !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Нельзя понизить другого администратора" },
+        { status: 403 }
+      );
+    }
+
     // Prevent demoting yourself
     if (action === "change_role" && id === auth.payload.userId) {
       return NextResponse.json(

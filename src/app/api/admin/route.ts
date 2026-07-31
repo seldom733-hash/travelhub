@@ -1,22 +1,12 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/admin-helpers";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Необходима авторизация" }, { status: 401 });
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload || (payload.role !== "ADMIN" && payload.role !== "MODERATOR")) {
-      return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
-    }
+    const auth = await requireAdmin(request, ["ADMIN", "MODERATOR"]);
+    if (auth.response) return auth.response;
 
     const { prisma } = await import("@/lib/prisma");
 
