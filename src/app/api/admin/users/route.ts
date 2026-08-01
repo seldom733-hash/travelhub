@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
           firstName: true,
           lastName: true,
           email: true,
+          phone: true,
           role: true,
           isActive: true,
           isVerified: true,
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
           createdAt: true,
           lastLoginAt: true,
           _count: {
-            select: { bookings: true, reviews: true, services: true },
+            select: { bookings: true, reviews: true, services: true, favorites: true },
           },
         },
         orderBy: { createdAt: "desc" },
@@ -60,12 +61,31 @@ export async function GET(request: NextRequest) {
       prisma.user.count({ where }),
     ]);
 
+    // Spent per user (completed bookings) — safe fallback
+    let spentMap: Map<string, number> = new Map();
+    try {
+      const userIds = users.map((u: any) => u.id);
+      if (userIds.length > 0) {
+        const spentRaw = await prisma.$queryRawUnsafe<{ user_id: string; total: bigint }[]>(
+          `SELECT b.user_id, SUM(b.total_price) as total
+           FROM bookings b
+           WHERE b.user_id = ANY($1) AND b.status = 'COMPLETED'
+           GROUP BY b.user_id`,
+          userIds
+        );
+        spentMap = new Map(spentRaw.map((r) => [r.user_id, Number(r.total || 0)]));
+      }
+    } catch (e) {
+      console.error("Spent per user error:", e);
+    }
+
     return NextResponse.json({
-      users: users.map((u) => ({
+      users: users.map((u: any) => ({
         id: u.id,
         firstName: u.firstName,
         lastName: u.lastName,
         email: u.email,
+        phone: u.phone,
         role: u.role,
         isActive: u.isActive,
         isVerified: u.isVerified,
@@ -75,6 +95,8 @@ export async function GET(request: NextRequest) {
         bookingsCount: u._count.bookings,
         reviewsCount: u._count.reviews,
         servicesCount: u._count.services,
+        favoritesCount: u._count.favorites,
+        spent: spentMap.get(u.id) || 0,
       })),
       pagination: {
         page,

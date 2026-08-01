@@ -1,5 +1,6 @@
 import { hash, compare } from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
+import type { NextRequest } from "next/server";
 
 function getJWTSecret(): Uint8Array {
   const raw = process.env.JWT_SECRET;
@@ -43,4 +44,14 @@ export async function verifyToken(token: string): Promise<{ userId: string; emai
   } catch {
     return null;
   }
+}
+
+/**
+ * Extract the authenticated session user (ADMIN/MODERATOR/PARTNER/BUYER)
+ * from the request's auth cookie. Returns null when unauthenticated.
+ */
+export async function getSessionUser(req: NextRequest): Promise<{ userId: string; email: string; role: string } | null> {
+  const token = req.cookies.get("token")?.value;
+  if (!token) return null;
+  return verifyToken(token);
 }

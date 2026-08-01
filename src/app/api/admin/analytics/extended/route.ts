@@ -1,15 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-helpers";
 import { prisma } from "@/lib/prisma";
+import { ApiCache } from "@/lib/api-cache";
 
 export const dynamic = "force-dynamic";
+
+// Extended analytics is the heaviest endpoint (multi-section DB aggregation).
+// Serve fresh for 60s, stale-while-revalidate up to 10 min.
+const extendedAnalyticsCache = new ApiCache(60, 600);
+
+// Only known sections are cached — arbitrary query values would grow the in-memory store unboundedly.
+const ALLOWED_SECTIONS = new Set(["all", "ceo", "users", "funnel", "search", "services", "partners", "finance", "technical", "marketing"]);
 
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireAdmin(request, ["ADMIN"]);
     if (auth.response) return auth.response;
     const { searchParams } = new URL(request.url);
-    const section = searchParams.get("section") || "all";
+    const requested = searchParams.get("section") || "all";
+    const section = ALLOWED_SECTIONS.has(requested) ? requested : "all";
+
+    // Serve from cache if fresh (keyed by section)
+    const cacheKey = `extended-analytics:${section}`;
+    const lookup = extendedAnalyticsCache.get(cacheKey);
+    if (lookup.data && !lookup.isStale) {
+      return NextResponse.json(lookup.data, { headers: { "X-Cache": "HIT" } });
+    }
 
     const safeQuery = async <T>(fn: () => Promise<T>, fb: T): Promise<T> => {
       try { return await fn(); } catch (e) { console.error("[safeQuery]", e); return fb; }
@@ -233,58 +249,70 @@ export async function GET(request: NextRequest) {
     }
 
     // ════════════════════════════════════════════════════════════════════
-    // 5-11. SERVICE TYPE ANALYTICS — Prisma ORM + raw for top viewed
+    // 5-11. SERVICE TYPE ANALYTICS — batched GROUP BY (no N+1, no page storm)
     // ════════════════════════════════════════════════════════════════════
     if (section === "all" || section === "services") {
       const serviceTypes = ["TOUR", "HOTEL", "SANATORIUM", "EXCURSION", "GUIDE", "PHOTOGRAPHER", "TRANSFER", "FLIGHT", "TRAIN"];
 
-      const perType = await Promise.all(serviceTypes.map(async (type) => {
-        const [stats, bookings] = await Promise.all([
-          safeQuery(() => prisma.service.aggregate({ where: { type: type as any, isActive: true }, _count: true, _avg: { price: true, rating: true } }), { _count: 0, _avg: { price: null, rating: null } }),
-          safeQuery(() => prisma.booking.count({ where: { service: { type: type as any } } }), 0),
-        ]);
+      // 4 queries total instead of ~80 (9 types × N+1)
+      const [typeStats, servicesBrief, allBookings, completedBookings] = await Promise.all([
+        safeQuery(() => prisma.service.groupBy({ by: ["type"], where: { isActive: true }, _count: true, _avg: { price: true, rating: true } }), []),
+        safeQuery(() => prisma.service.findMany({ select: { id: true, type: true, title: true } }), []),
+        safeQuery(() => prisma.booking.groupBy({ by: ["serviceId"], _count: true }), []),
+        safeQuery(() => prisma.booking.groupBy({ by: ["serviceId"], where: { status: "COMPLETED" }, _sum: { totalPrice: true, serviceFee: true }, _count: true }), []),
+      ]);
 
-        const completedRevenue = await safeQuery(() => prisma.booking.aggregate({
-          where: { status: "COMPLETED", service: { type: type as any } },
-          _sum: { totalPrice: true, serviceFee: true }, _count: true,
-        }), { _sum: { totalPrice: null, serviceFee: null }, _count: 0 });
+      const statsMap = new Map((typeStats as any[]).map((r) => [r.type, r]));
+      const typeOf = new Map((servicesBrief as any[]).map((s) => [s.id, s.type]));
+      const titleOf = new Map((servicesBrief as any[]).map((s) => [s.id, s.title]));
+      const allBookMap = new Map((allBookings as any[]).map((r) => [r.serviceId, r._count]));
+      const compMap = new Map((completedBookings as any[]).map((r) => [r.serviceId, r]));
 
-        // Top viewed via ORM
-        const topViewed = await safeQuery(() => prisma.pageView.groupBy({
-          by: ["serviceId"],
-          where: { serviceType: type },
-          _count: true,
-          orderBy: { _count: { serviceId: "desc" } },
-          take: 5,
-        }), []);
-
-        // Resolve service titles
-        const topViewedWithTitles = await Promise.all(
-          topViewed.map(async (tv: any) => {
-            const svc = await safeQuery(() => prisma.service.findUnique({
-              where: { id: tv.serviceId }, select: { id: true, title: true },
-            }), null);
-            return { id: tv.serviceId, title: svc?.title || tv.serviceId, views: tv._count };
-          })
-        );
-
+      const perType = serviceTypes.map((type) => {
+        const st = (statsMap.get(type) as any) || { _count: 0, _avg: { price: null, rating: null } };
+        let totalBookings = 0, completedCount = 0, revenue = 0, commission = 0;
+        for (const s of servicesBrief as any[]) {
+          if (s.type !== type) continue;
+          totalBookings += allBookMap.get(s.id) || 0;
+          const cb = compMap.get(s.id);
+          if (cb) {
+            completedCount += cb._count;
+            revenue += Number(cb._sum.totalPrice || 0);
+            commission += Number(cb._sum.serviceFee || 0);
+          }
+        }
         return {
-          type, count: stats._count,
-          avgPrice: Math.round(Number(stats._avg.price || 0)),
-          avgRating: Number(stats._avg.rating || 0).toFixed(1),
-          totalBookings: bookings, completedBookings: completedRevenue._count,
-          revenue: Number(completedRevenue._sum.totalPrice || 0),
-          commission: Number(completedRevenue._sum.serviceFee || 0),
-          topViewed: topViewedWithTitles,
-          conversion: stats._count > 0 ? (completedRevenue._count / stats._count * 100).toFixed(1) : "0",
+          type, count: st._count,
+          avgPrice: Math.round(Number(st._avg.price || 0)),
+          avgRating: Number(st._avg.rating || 0).toFixed(1),
+          totalBookings, completedBookings: completedCount,
+          revenue, commission,
+          topViewed: [] as { id: string; title: string; views: number }[],
+          conversion: st._count > 0 ? (completedCount / st._count * 100).toFixed(1) : "0",
         };
-      }));
+      });
+
+      // Top viewed — one GROUP BY instead of 9 per-type queries + N+1 title lookups
+      const topViewedRaw = await safeQuery(() => prisma.pageView.groupBy({
+        by: ["serviceId"], _count: true,
+        orderBy: { _count: { serviceId: "desc" } },
+        take: 50,
+      }), []);
+      const viewedByType = new Map<string, { id: string; title: string; views: number }[]>();
+      for (const tv of topViewedRaw as any[]) {
+        const type = typeOf.get(tv.serviceId);
+        if (!type) continue;
+        const arr = viewedByType.get(type) || [];
+        if (arr.length < 5) arr.push({ id: tv.serviceId, title: titleOf.get(tv.serviceId) || tv.serviceId, views: tv._count });
+        viewedByType.set(type, arr);
+      }
+      perType.forEach((p) => { p.topViewed = viewedByType.get(p.type) || []; });
 
       result.services = perType;
     }
 
     // ════════════════════════════════════════════════════════════════════
-    // 12. PARTNER ANALYTICS — use Prisma ORM instead of ANY($1::text[])
+    // 12. PARTNER ANALYTICS — batched GROUP BY (no N+1 per partner)
     // ════════════════════════════════════════════════════════════════════
     if (section === "all" || section === "partners") {
       const partners = await safeQuery(() => prisma.user.findMany({
@@ -296,20 +324,27 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: "desc" },
       }), []);
 
-      // Get revenue per partner using Prisma ORM (no raw SQL)
-      const partnerIds = partners.map(p => p.id);
-      const partnerRevenue = await Promise.all(
-        partnerIds.map(async (id) => {
-          const rev = await safeQuery(() => prisma.booking.aggregate({
-            where: { status: "COMPLETED", service: { providerId: id } },
-            _sum: { totalPrice: true, serviceFee: true },
-            _count: true,
-          }), { _sum: { totalPrice: null, serviceFee: null }, _count: 0 });
-          return { id, revenue: Number(rev._sum.totalPrice || 0), completedBookings: rev._count };
-        })
-      );
+      // Revenue per partner: 2 queries total (service→provider map + completed group by serviceId)
+      // instead of one aggregate per partner.
+      const [serviceProviders, completedByService] = await Promise.all([
+        safeQuery(() => prisma.service.findMany({ select: { id: true, providerId: true } }), []),
+        safeQuery(() => prisma.booking.groupBy({
+          by: ["serviceId"], where: { status: "COMPLETED" },
+          _sum: { totalPrice: true, serviceFee: true }, _count: true,
+        }), []),
+      ]);
+      const providerOf = new Map((serviceProviders as any[]).map((s) => [s.id, s.providerId]));
+      const revByProvider = new Map<string, { revenue: number; completedBookings: number }>();
+      for (const r of completedByService as any[]) {
+        const providerId = providerOf.get(r.serviceId);
+        if (!providerId) continue;
+        const ex = revByProvider.get(providerId) || { revenue: 0, completedBookings: 0 };
+        ex.revenue += Number(r._sum.totalPrice || 0);
+        ex.completedBookings += r._count;
+        revByProvider.set(providerId, ex);
+      }
 
-      const revMap = new Map(partnerRevenue.map((r) => [r.id, r]));
+      const revMap = new Map<string, { revenue: number; completedBookings: number }>(revByProvider);
 
       const enrichedPartners = partners.map(p => ({
         ...p,
@@ -339,37 +374,41 @@ export async function GET(request: NextRequest) {
         safeQuery(() => prisma.payment.count({ where: { status: "PENDING" } }), 0),
       ]);
 
-      // Revenue by type — use Prisma ORM to avoid BigInt issues
-      const completedBookings = await safeQuery(() => prisma.booking.findMany({
-        where: { status: "COMPLETED" },
-        select: { totalPrice: true, serviceFee: true, createdAt: true, service: { select: { type: true } } },
-      }), []);
+      // Revenue by type + by day — aggregated in the DB, no whole-table fetch.
+      const [revByServiceRaw, revByDayRaw, serviceTypesBrief] = await Promise.all([
+        safeQuery(() => prisma.booking.groupBy({
+          by: ["serviceId"], where: { status: "COMPLETED" },
+          _sum: { totalPrice: true, serviceFee: true }, _count: true,
+        }), []),
+        safeQuery(() => prisma.$queryRawUnsafe<{ date: Date; revenue: bigint | number; fees: bigint | number }[]>(
+          `SELECT DATE(created_at) AS date,
+                  COALESCE(SUM(total_price), 0) AS revenue,
+                  COALESCE(SUM(service_fee), 0) AS fees
+           FROM bookings WHERE status = 'COMPLETED'
+           GROUP BY DATE(created_at) ORDER BY date DESC LIMIT 30`
+        ), []),
+        safeQuery(() => prisma.service.findMany({ select: { id: true, type: true } }), []),
+      ]);
+      const typeOf = new Map((serviceTypesBrief as any[]).map((s) => [s.id, s.type]));
 
       const revByTypeMap = new Map<string, { revenue: number; fees: number; count: number }>();
-      for (const b of completedBookings) {
-        const type = b.service?.type || "UNKNOWN";
+      for (const r of revByServiceRaw as any[]) {
+        const type = typeOf.get(r.serviceId) || "UNKNOWN";
         const existing = revByTypeMap.get(type) || { revenue: 0, fees: 0, count: 0 };
-        existing.revenue += Number(b.totalPrice || 0);
-        existing.fees += Number(b.serviceFee || 0);
-        existing.count++;
+        existing.revenue += Number(r._sum.totalPrice || 0);
+        existing.fees += Number(r._sum.serviceFee || 0);
+        existing.count += r._count;
         revByTypeMap.set(type, existing);
       }
       const revenueByType = [...revByTypeMap.entries()]
         .map(([type, d]) => ({ type, ...d }))
         .sort((a, b) => b.revenue - a.revenue);
 
-      const revByDayMap = new Map<string, { revenue: number; fees: number }>();
-      for (const b of completedBookings) {
-        const day = b.createdAt.toISOString().slice(0, 10);
-        const existing = revByDayMap.get(day) || { revenue: 0, fees: 0 };
-        existing.revenue += Number(b.totalPrice || 0);
-        existing.fees += Number(b.serviceFee || 0);
-        revByDayMap.set(day, existing);
-      }
-      const revenueByDay = [...revByDayMap.entries()]
-        .map(([date, d]) => ({ date, ...d }))
-        .sort((a, b) => b.date.localeCompare(a.date))
-        .slice(0, 30);
+      const revenueByDay = (revByDayRaw as any[]).map((r) => ({
+        date: r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date).slice(0, 10),
+        revenue: num(r.revenue),
+        fees: num(r.fees),
+      }));
 
       result.finance = {
         gmv: Number(totalRevenue._sum.totalPrice || 0),
@@ -521,7 +560,9 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    return NextResponse.json(cleanBigInt(result));
+    const payload = cleanBigInt(result);
+    extendedAnalyticsCache.set(cacheKey, payload);
+    return NextResponse.json(payload, { headers: { "X-Cache": "MISS" } });
   } catch (error) {
     console.error("Extended analytics error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useI18n } from "@/lib/i18n-context";
 
 interface Stats {
@@ -11,14 +12,16 @@ interface Stats {
 
 export default function Footer() {
   const { t } = useI18n();
+  const pathname = usePathname();
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
+    if (pathname?.startsWith("/admin")) return;
     fetch("/api/stats")
       .then((r) => r.json())
       .then((data) => setStats(data))
       .catch(() => {});
-  }, []);
+  }, [pathname]);
 
   const totalServices = stats
     ? stats.services.tours + stats.services.hotels + stats.services.sanatoriums + stats.services.excursions + stats.services.flights + stats.services.trains + stats.services.guides + stats.services.photographers + stats.services.transfers
@@ -55,6 +58,9 @@ export default function Footer() {
     { titleKey: "footer.partners", links: partnerLinks },
     { titleKey: "footer.support", links: supportLinks },
   ];
+
+  // Admin area has its own chrome — hide the public footer there
+  if (pathname?.startsWith("/admin")) return null;
 
   return (
     <footer className="bg-secondary text-white">

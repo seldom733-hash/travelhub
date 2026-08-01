@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useI18n } from "@/lib/i18n-context";
 import { isNaturalLanguageQuery } from "@/lib/ai-search-engine";
 
@@ -164,6 +164,10 @@ export default function Header() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const { locale, setLocale, t } = useI18n();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Admin area has its own chrome — hide the public header there
+  const isAdminArea = pathname?.startsWith("/admin");
 
   const navItems = navConfig.map((item) => ({ ...item, label: t(item.i18nKey) }));
   const [isScrolled, setIsScrolled] = useState(false);
@@ -196,6 +200,8 @@ export default function Header() {
     await logout();
     router.push("/");
   };
+
+  if (isAdminArea) return null;
 
   return (
     <>
@@ -262,13 +268,21 @@ export default function Header() {
                     <span className="text-sm font-medium text-primary hidden lg:block">{user.firstName}</span>
                   </button>
                   {userMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
+                    <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
                       <div className="px-4 py-2 border-b border-gray-100">
                         <p className="font-semibold text-secondary text-sm">{user.firstName} {user.lastName}</p>
                         <p className="text-xs text-gray-400">{user.email}</p>
                       </div>
                       {user.role === "ADMIN" && (
-                        <a href="/admin_dashboard" className="block px-4 py-2 text-sm text-primary font-semibold hover:bg-primary/5 transition-colors">🛡 {t("header.dashboard")}</a>
+                        <>
+                          <a href="/admin" className="block px-4 py-2 text-sm text-primary font-semibold hover:bg-primary/5 transition-colors">{t("header.dashboard")}</a>
+                          <div className="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-t border-gray-100">{t("operations.sectionSubtitle")}</div>
+                          <a href="/admin/partners" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">🤝 {t("operations.partners")}</a>
+                          <a href="/admin/users" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">👥 {t("operations.users")}</a>
+                          <a href="/admin/finance" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">💰 {t("operations.finance")}</a>
+                          <a href="/admin/marketing" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">📣 {t("operations.marketing")}</a>
+                          <a href="/admin/ai" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">🤖 {t("operations.ai")}</a>
+                        </>
                       )}
 
                       <a href="/favorites" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">{t("header.favorites")}</a>

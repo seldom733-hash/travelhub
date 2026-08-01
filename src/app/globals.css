@@ -146,6 +146,20 @@ select:focus {
   animation: slide-in-right 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) both;
 }
 
+/* Right-side drawer slide-in (from right edge moving left) */
+@keyframes slide-in-left {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+}
+
 /* Slide-up animation for mobile drawer */
 @keyframes slide-up {
   from {

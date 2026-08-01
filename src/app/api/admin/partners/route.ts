@@ -37,12 +37,17 @@ export async function GET(request: NextRequest) {
             firstName: true,
             lastName: true,
             email: true,
+            phone: true,
             companyName: true,
             partnerType: true,
             isActive: true,
             isVerified: true,
             createdAt: true,
             lastLoginAt: true,
+            services: {
+              select: { country: true, countryCode: true, rating: true, reviewCount: true },
+              take: 50,
+            },
             _count: {
               select: { services: true, bookings: true, reviews: true },
             },
@@ -83,22 +88,32 @@ export async function GET(request: NextRequest) {
       ])
     );
 
-    const enrichedPartners = partners.map((p) => ({
-      id: p.id,
-      firstName: p.firstName,
-      lastName: p.lastName,
-      email: p.email,
-      companyName: p.companyName,
-      partnerType: p.partnerType,
-      isActive: p.isActive,
-      isVerified: p.isVerified,
-      createdAt: p.createdAt,
-      lastLoginAt: p.lastLoginAt,
-      serviceCount: p._count.services,
-      bookingCount: revenueMap.get(p.id)?.bookingCount || 0,
-      reviewCount: p._count.reviews,
-      totalRevenue: revenueMap.get(p.id)?.revenue || 0,
-    }));
+    const enrichedPartners = partners.map((p) => {
+      const ratingSum = p.services?.reduce((s: number, sv: any) => s + (sv.rating || 0), 0) || 0;
+      const serviceRatings = p.services?.filter((sv: any) => sv.rating > 0).length || 0;
+      const country = p.services?.find((sv: any) => sv.country)?.country || null;
+      const countryCode = p.services?.find((sv: any) => sv.countryCode)?.countryCode || null;
+      return {
+        id: p.id,
+        firstName: p.firstName,
+        lastName: p.lastName,
+        email: p.email,
+        phone: p.phone,
+        companyName: p.companyName,
+        partnerType: p.partnerType,
+        country,
+        countryCode,
+        isActive: p.isActive,
+        isVerified: p.isVerified,
+        createdAt: p.createdAt,
+        lastLoginAt: p.lastLoginAt,
+        serviceCount: p._count.services,
+        bookingCount: revenueMap.get(p.id)?.bookingCount || 0,
+        reviewCount: p._count.reviews,
+        totalRevenue: revenueMap.get(p.id)?.revenue || 0,
+        avgRating: serviceRatings ? Math.round((ratingSum / serviceRatings) * 10) / 10 : 0,
+      };
+    });
 
     return NextResponse.json({
       partners: enrichedPartners,
